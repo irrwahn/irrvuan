@@ -1,0 +1,127 @@
+######################################################################
+# This file is part of the Irrvuan OS image builder script suite.
+#
+# Copyright 2018 Urban Wallasch <irrwahn35@freenet.de>
+#
+# See LICENSE file for more details.
+#
+
+function Stage_0() {
+    log "--- ${FUNCNAME[0]} CONFIGURE ---"
+    CLEANUP="Stage_0_cleanup $CLEANUP"
+
+    # Prepare build environment:
+    [ -d "$FLAVDIR/$FLAVOR" ] || check 2 "No such flavor: $FLAVOR"
+    TIMETAG=$(date '+%Y%m%dT%H%M%S')
+    LOGFILE="$LOGDIR/$FLAVOR"_$TIMETAG.log
+    TMPDIR="$TMPDIR/$FLAVOR"
+    MOUNTP="$MOUNTP/$FLAVOR"
+    log "Log started"
+    log "Irrvuan OS image builder script v$SCRIPT_VERSION"
+    if [ -n "$(ls -A "$TMPDIR")" ] ; then
+        pause "? Clear temp dir: $TMPDIR ?"
+        rm -rf "$TMPDIR/"
+    fi
+    mkdir -pv "$LOGDIR" "$BUILDDIR" "$MOUNTP" "$TMPDIR"
+    check $? "mkdir"
+
+    # Backtrace the chain of flavors to merge:
+    local chain="$FLAVOR"
+    local d="$FLAVDIR/$FLAVOR"
+    local f=""
+    while [ -n "$d" ] ; do
+        if [ ! -d "$d" ] ; then
+            check 11 "Not a flavor directory: '$d'"
+        elif [ -r "$d/base" ] && read -r f <"$d/base" && [ -n "$f" ]; then
+            chain="$f:$chain"
+            d="$FLAVDIR/$f"
+        else
+            d=""
+        fi
+    done
+
+    # In-order traverse and merge flavors:
+    local oifs=$IFS
+    IFS=':'
+    for f in $chain ; do
+        log "Merge flavor: $f"
+        # Concatenate files:
+        for d in chrootinst config pkglist ; do
+            [ -r "$FLAVDIR/$f/$d" ] && cat "$FLAVDIR/$f/$d" >> "$TMPDIR/$d"
+        done
+        # Amalgamate folders:
+        for d in overlay xtrapkg ; do
+            mkdir -p "$TMPDIR/$d"
+            [ -d "$FLAVDIR/$f/$d" ] &&  cp -a "$FLAVDIR/$f/$d/." "$TMPDIR/$d/"
+        done
+    done
+    IFS=$oifs
+    . "$TMPDIR/config"
+
+    # Check prerequisites:
+    log "Check prerequisites"
+    local cmd
+    for cmd in bc envsubst truncate sudo ; do
+        local o=$(command -pv $cmd) || check $? "$cmd command not found!"
+        #log "have $o"
+    done
+    sudo echo "" > /dev/null || check $? "sudo: FAIL!"
+    #log "sudo: passed"
+    for cmd in debootstrap losetup parted mkfs.$BOOTP_FS mkfs.$ROOTP_FS ; do
+        local o=$(command -v $cmd) || check $? "$cmd command not found!"
+        #log "have $o"
+    done
+    local v=$(losetup -V | grep -Eo '[0-9]+\.[0-9]+')
+    check $( echo "$v < 2.21" | bc ) "losetup >= 2.21 is required!"
+    #log "losetup: $v.x"
+
+    # Fix-up and dump build config:
+    OPENCHROOTSH=$(istrue "$OPENCHROOTSH")
+    [ -z "$IMGNAME" ] && IMGNAME="$IMAGE_PRE-$IMAGE_VER-$ARCH-$TIMETAG"
+    IMGFILE=$BUILDDIR/$IMGNAME.img
+    log "----- Build dirs -----"
+    log "LOGDIR=$LOGDIR"
+    log "BUILDDIR=$BUILDDIR"
+    log "MOUNTP=$MOUNTP"
+    log "TMPDIR=$TMPDIR"
+    log "----- Build config -----"
+    log "FLAVOR=$FLAVOR"
+    log "ARCH=$ARCH"
+    log "KERNEL=$KERNEL"
+    log "BASEPKG=$BASEPKG"
+    log "COMPONENTS=$COMPONENTS"
+    log "VARIANT=$VARIANT"
+    log "SUITE=$SUITE"
+    log "MIRURL=$MIRURL"
+    log "IMAGE_PRE=$IMAGE_PRE"
+    log "IMAGE_VER=$IMAGE_VER"
+    log "IMAGE_SIZE=$IMAGE_SIZE"
+    log "BOOTP_SIZE=$BOOTP_SIZE"
+    log "BOOTP_LABEL=$BOOTP_LABEL"
+    log "BOOTP_FS=$BOOTP_FS"
+    log "ROOTP_SIZE=$ROOTP_SIZE"
+    log "ROOTP_LABEL=$ROOTP_LABEL"
+    log "BOOTP_FS=$BOOTP_FS"
+    log "ROOTPW=$ROOTPW"
+    log "USER=$USER"
+    log "USERPW=$USERPW"
+    log "HOSTNAME=$HOSTNAME"
+    log "DOMAIN=$DOMAIN"
+    log "APTGETOPT=$APTGETOPT"
+    log "OPENCHROOTSH=$OPENCHROOTSH"
+    log "IMGFILE=$IMGFILE"
+
+    # When running interactively allow user to opt out now:
+    if [ -t 0 ] ; then
+        echo "**********************************"
+        echo "**  Last chance to reconsider!  **"
+        echo "**********************************"
+        pause "? Continue build ?"
+    fi
+}
+
+function Stage_0_cleanup() {
+    log "--- ${FUNCNAME[0]} ---"
+}
+
+# EOF

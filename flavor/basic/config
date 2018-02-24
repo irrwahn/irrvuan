@@ -1,0 +1,44 @@
+# config for flavor 'basic'
+
+# Any variables declared below can be amended or overridden by
+# corresponding settings in the individual flavor's conf-file.
+
+# Sensible defaults for disk image parameters:
+IMAGE_PRE="Irrvuan-$FLAVOR"
+IMAGE_VER="0.0.2~beta1"
+IMAGE_SIZE=4096     # overall disk image size in MiB (>= BOOT + ROOT + 1)
+
+BOOTP_SIZE=127      # boot partition size in MiB
+BOOTP_LABEL=IBOOT   # boot partition label (used in /etc/fstab)
+BOOTP_FS=ext4       # file system for boot partition
+
+ROOTP_SIZE=3968     # root partition size in MiB
+ROOTP_LABEL=IROOT   # root partition label (used in /etc/fstab)
+ROOTP_FS=ext4       # file system for root partition
+
+# Sensible defaults for debootstrap parameters:
+ARCH=amd64
+KERNEL=linux-image-amd64
+BASEPKG=grub-pc,\
+firmware-linux-free,\
+console-setup,\
+console-setup-linux,\
+locales,\
+keyboard-configuration
+
+COMPONENTS=main,contrib
+VARIANT=            # <empty> or one of minbase | buildd | fakechroot
+SUITE=ascii
+MIRURL=http://pkgmaster.devuan.org/merged
+DEBSTR_XTRA=        # extra arguments to pass to debootstrap
+
+# Sensible defaults for system configuration:
+ROOTPW=toor
+USER=user
+USERPW=user
+HOSTNAME=$FLAVOR
+DOMAIN=
+APTGETOPT="--no-install-recommends"
+OPENCHROOTSH=no
+
+# EOF

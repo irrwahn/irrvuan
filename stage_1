@@ -1,0 +1,91 @@
+######################################################################
+# This file is part of the Irrvuan OS image builder script suite.
+#
+# Copyright 2018 Urban Wallasch <irrwahn35@freenet.de>
+#
+# See LICENSE file for more details.
+#
+
+# Prepare and loop-mount the image file:
+
+# mkfsys <fs-type> <fs-label> <partition-device>
+function mkfsys() {
+    case "$1" in
+        ext2|ext3|ext4)
+            sudo mkfs.$1 -L "$2" -F -v "$3" 2>&1 | tee -a "$LOGFILE"
+            ;;
+        fat|msdos|vfat)
+            sudo mkfs.$1 -F 32 -n "$2" -v "$3" 2>&1 | tee -a "$LOGFILE"
+            ;;
+        *)
+            log "mkfsys $1 $2 $3: unsupported filesystem: $1"; false
+            ;;
+    esac
+}
+
+function Stage_1() {
+    log "--- ${FUNCNAME[0]} PREPARE IMAGE ---"
+
+    # Check partitions vs. image size:
+    local sz=$(( BOOTP_SIZE + ROOTP_SIZE + 1 ))
+    check $(( sz > IMAGE_SIZE )) \
+        "Cumulative partition size '$sz' exceeds image size '$IMAGE_SIZE'."
+
+    log "Create image file"
+    truncate -s "$IMAGE_SIZE"M "$IMGFILE"
+    check $? "truncate"
+
+    log "Create partition table"
+    BOOTSTRT=1
+    BOOTEND=$(( BOOTSTRT + BOOTP_SIZE ))
+    ROOTSTRT=$BOOTEND
+    ROOTEND=$(( ROOTSTRT + ROOTP_SIZE - 1 ))
+    sudo parted -s "$IMGFILE" -- \
+        mklabel msdos \
+        unit MiB mkpart primary $BOOTSTRT $BOOTEND \
+        unit MiB mkpart primary $ROOTSTRT $ROOTEND \
+        toggle 1 boot \
+        2>&1 | tee -a "$LOGFILE"
+    check $? "parted"
+
+    log "Setup loop device"
+
+    LOOPD="$(sudo losetup --show -f -P "$IMGFILE")" || check $? "losetup -P"
+    CLEANUP="Stage_1_cleanup $CLEANUP"
+    LOPART=( $(echo "$LOOPD"*) )
+    BOOTP=${LOPART[1]}
+    ROOTP=${LOPART[2]}
+    log "Have: $LOOPD $BOOTP $ROOTP"
+
+    log "Create $BOOTP_FS on boot partition"
+    mkfsys $BOOTP_FS $BOOTP_LABEL $BOOTP || check $? "mkfsys failed"
+    log "Create $ROOTP_FS on root partition"
+    mkfsys $ROOTP_FS $ROOTP_LABEL $ROOTP || check $? "mkfsys failed"
+    parted -s "$IMGFILE" -- unit MiB print 2>&1 | tee -a "$LOGFILE"
+
+    log "Mount filesystems"
+    sudo umount "$MOUNTP" >/dev/null 2>&1
+    if mountpoint "$MOUNTP" >/dev/null 2>&1 ; then
+        check 3 "$MOUNTP is already a mountpoint"
+    fi
+    sudo mount -v "$ROOTP" "$MOUNTP" 2>&1 | tee -a "$LOGFILE"
+    check $? "mount"
+    UMOUNT="$MOUNTP"
+    sudo mkdir -p "$MOUNTP/boot"
+    sudo mount -v "$BOOTP" "$MOUNTP/boot" 2>&1 | tee -a "$LOGFILE"
+    check $? "mount"
+    UMOUNT="$MOUNTP/boot $UMOUNT"
+}
+
+function Stage_1_cleanup() {
+    log "--- ${FUNCNAME[0]} ---"
+    local u
+    for u in $UMOUNT ; do
+        sudo umount -v $u 2>&1 | tee -a "$LOGFILE"
+    done
+    sync
+    log "Remove loop device: $LOOPD"
+    sudo losetup -v -d $LOOPD  | tee -a "$LOGFILE"
+}
+
+# EOF

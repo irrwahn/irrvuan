@@ -1,0 +1,10 @@
+# pkglist for flavor 'basic'
+#
+# Add additional package actions in this file, in any order,
+# one action per line.
+#
+# i packagename      -- install a package
+# p packagename      -- purge a package
+# c packagename      -- reconfigure a package
+
+# EOF

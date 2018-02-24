@@ -1,0 +1,30 @@
+######################################################################
+# This file is part of the Irrvuan OS image builder script suite.
+#
+# Copyright 2018 Urban Wallasch <irrwahn35@freenet.de>
+#
+# See LICENSE file for more details.
+#
+
+# Debootstrap the base system:
+
+function Stage_2() {
+    log "--- ${FUNCNAME[0]} DEBOOTSTRAP ---"
+
+    # Run debootstrap
+    sudo debootstrap --verbose \
+        --arch "$ARCH" \
+        --include="$KERNEL,$BASEPKG" \
+        --components="$COMPONENTS" \
+        $( [ -n "$VARIANT" ] && $(echo --variant="$VARIANT")) \
+        $DEBSTR_XTRA \
+        "$SUITE" "$MOUNTP" "$MIRURL" 2>&1 | tee -a "$LOGFILE"
+    check $? "debootstrap"
+    CLEANUP="Stage_2_cleanup $CLEANUP"
+}
+
+function Stage_2_cleanup() {
+    log "--- ${FUNCNAME[0]} ---"
+}
+
+# EOF

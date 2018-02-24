@@ -1,0 +1,14 @@
+# config for flavor "xfce"
+
+IMAGE_PRE=Irrvuan-$FLAVOR
+IMAGE_VER=2.0.0~beta1
+
+BASEPKG=$BASEPKG,\
+libpam-ck-connector,\
+libpolkit-backend-1-0-consolekit,\
+libpolkit-gobject-1-0-consolekit,\
+gvfs-fuse
+
+APTGETOPT=
+
+# EOF

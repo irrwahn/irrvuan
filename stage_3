@@ -1,0 +1,88 @@
+######################################################################
+# This file is part of the Irrvuan OS image builder script suite.
+#
+# Copyright 2018 Urban Wallasch <irrwahn35@freenet.de>
+#
+# See LICENSE file for more details.
+#
+
+# Prepare and work in chroot:
+
+# Perform variable substitution over a file:
+function var_subst() {
+    if [ -n "$1" ] ; then
+        log "${FUNCNAME[0]} $1"
+        local t=$(< "$1")
+        echo "$t" | envsubst "$2" > "$1"
+    fi
+}
+
+function Stage_3() {
+    log "--- ${FUNCNAME[0]} CHROOT ---"
+
+    # Prepare variables for substitution:
+    local fqdn=$HOSTNAME ; [ -n "$DOMAIN" ] && fqdn="$fqdn.$DOMAIN"
+    export \
+        _OVL_HOSTNAME_=$HOSTNAME \
+        _OVL_FQDN_=$fqdn \
+        _OVL_ROOTP_LABEL_=$ROOTP_LABEL \
+        _OVL_ROOTP_FS_=$ROOTP_FS \
+        _OVL_BOOTP_LABEL_=$BOOTP_LABEL \
+        _OVL_BOOTP_FS_=$BOOTP_FS \
+        _OVL_USER_=$USER \
+        _OVL_USERPW_=$USERPW \
+        _OVL_ROOTPW_=$ROOTPW \
+        _OVL_LOOPD_=$LOOPD \
+        _OVL_APTGETOPT_=$APTGETOPT
+
+    local _ovl_vars='\
+        $_OVL_HOSTNAME_ \
+        $_OVL_FQDN_ \
+        $_OVL_ROOTP_LABEL_ \
+        $_OVL_ROOTP_FS_ \
+        $_OVL_BOOTP_LABEL_ \
+        $_OVL_BOOTP_FS_ \
+        $_OVL_USER_ \
+        $_OVL_USERPW_ \
+        $_OVL_ROOTPW_ \
+        $_OVL_LOOPD_ \
+        $_OVL_APTGETOPT_'
+
+    # Substitute variables in overlay and chrootinst, copy stuff to image:
+    find "$TMPDIR/overlay/" -type f | \
+        while read f; do var_subst "$f" "$_ovl_vars"; done
+    sudo cp -vdR --preserve=mode,links "$TMPDIR/overlay/." "$MOUNTP/" \
+        2>&1 | tee -a "$LOGFILE"
+    var_subst "$TMPDIR/chrootinst" "$_ovl_vars"
+    sudo cp -v "$TMPDIR/chrootinst" "$MOUNTP/" 2>&1 | tee -a "$LOGFILE"
+    sudo cp -v "$TMPDIR/pkglist" "$MOUNTP/" 2>&1 | tee -a "$LOGFILE"
+    sudo cp -va "$TMPDIR/xtrapkg" "$MOUNTP/" 2>&1 | tee -a "$LOGFILE"
+
+    # Bind-mount relevant pseudo-filesystems and enter chroot:
+    log "Enter chroot"
+    sudo mount -v -o bind /dev "$MOUNTP/dev" 2>&1 | tee -a "$LOGFILE"
+    sudo mount -v -o bind /dev/pts "$MOUNTP/dev/pts" 2>&1 | tee -a "$LOGFILE"
+    sudo mount -v -t proc none "$MOUNTP/proc" 2>&1 | tee -a "$LOGFILE"
+    sudo mount -v -t sysfs none "$MOUNTP/sys" 2>&1 | tee -a "$LOGFILE"
+    CLEANUP="Stage_3_cleanup $CLEANUP"
+    sudo touch "$MOUNTP/DO_CHROOT_CONFIG"
+    sudo chroot "$MOUNTP" /bin/bash /chrootinst 2>&1 | tee -a "$LOGFILE"
+    [ "$?" -ne "0" ] && OPENCHROOTSH=1
+    # If configured and in interactive mode, run a chroot shell:
+    if [ -t 0 ] && [ $OPENCHROOTSH -ne 0 ] ; then
+        log "Drop to a chroot shell in $MOUNTP."
+        echo "Ctrl-D or exit to continue."
+        sudo chroot "$MOUNTP" /bin/bash
+    fi
+}
+
+function Stage_3_cleanup() {
+    log "--- ${FUNCNAME[0]} ---"
+    sudo rm -fv "$MOUNTP/chrootinst" "$MOUNTP/pkglist" 2>&1 | tee -a "$LOGFILE"
+    sudo rm -frv "$MOUNTP/xtrapkg" "$MOUNTP/data" 2>&1 | tee -a "$LOGFILE"
+    sudo umount -v "$MOUNTP/sys" "$MOUNTP/proc" 2>&1 | tee -a "$LOGFILE"
+    sudo umount -v "$MOUNTP/dev/pts" "$MOUNTP/dev" 2>&1 | tee -a "$LOGFILE"
+    sync
+}
+
+# EOF

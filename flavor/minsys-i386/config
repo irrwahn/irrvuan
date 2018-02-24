@@ -1,0 +1,6 @@
+# config for flavor 'minsys-i386'
+
+ARCH=i386
+KERNEL=linux-image-686
+
+# EOF

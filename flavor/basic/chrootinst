@@ -1,0 +1,60 @@
+# chrootinst script for flavor 'basic'.
+# This script is executed in the chroot'd system tree!
+
+# Sanity check
+if [ ! -e /DO_CHROOT_CONFIG ] ; then
+    echo "Do not run me on anything but a fresh chroot, aborting."
+    exit 1
+else
+    rm -rf /DO_CHROOT_CONFIG
+fi
+
+echo "Configure locale, console, timezone"
+unset LANGUAGE LANG LC_ALL
+/usr/sbin/locale-gen
+. /etc/default/locale
+/bin/setupcon -v --save-only
+dpkg-reconfigure -f noninteractive tzdata
+
+echo "Enable shadow passwords, create user account, set passwords"
+/sbin/shadowconfig on
+/usr/sbin/useradd -u 1000 -c "$_OVL_USER_" -m -s /bin/bash $_OVL_USER_
+echo "$_OVL_USER_:$_OVL_USERPW_" | /usr/sbin/chpasswd
+echo "root:$_OVL_ROOTPW_" | /usr/sbin/chpasswd
+
+echo "Perform additional package actions"
+export DEBIAN_FRONTEND=noninteractive
+if [ -f /pkglist ] ; then
+    echo "Process pkglist"
+    apt-get -q update
+    apt-get -q -y $_OVL_APTGETOPT_ upgrade
+    while read -r line || [ -n "$line" ]; do
+        TOK=( $line )
+        case ${TOK[0]} in
+            i|I)
+                apt-get -q -y $_OVL_APTGETOPT_ install ${TOK[1]}
+                ;;
+            p|P)
+                apt-get -q -y $_OVL_APTGETOPT_ purge ${TOK[1]}
+                ;;
+            c|C)
+                dpkg-reconfigure --frontend noninteractive ${TOK[1]}
+                ;;
+        esac
+    done < /pkglist
+fi
+XDEBS=$(shopt -s nullglob dotglob; echo /xtrapkg/*.deb)
+if (( ${#XDEBS} )) ; then
+    echo "Process xtrapkg"
+    dpkg -E -i $XDEBS
+    dpkg --configure -a
+fi
+apt-get -q clean
+
+update-initramfs -u -k all
+sed -i s/CMDLINE_LINUX_DEFAULT=\"quiet\"/CMDLINE_LINUX_DEFAULT=\"\"/ \
+    /etc/default/grub
+grub-install --boot-directory=/boot $_OVL_LOOPD_
+update-grub
+
+# EOF

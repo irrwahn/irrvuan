@@ -1,0 +1,6 @@
+
+proc         /proc  proc   defaults              0 0
+tmpfs        /tmp   tmpfs  size=15%,mode=1777    0 0
+
+LABEL=$_OVL_ROOTP_LABEL_  /      $_OVL_ROOTP_FS_  defaults,noatime,errors=remount-ro  0 1
+LABEL=$_OVL_BOOTP_LABEL_  /boot  $_OVL_BOOTP_FS_  defaults,noatime                    0 2

@@ -1,0 +1,7 @@
+# pkglist for flavor 'minsys'
+
+i acpi-support
+i aptitude
+i mc
+
+# EOF
