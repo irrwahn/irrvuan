@@ -38,7 +38,7 @@ rusty shell programming skills. ;-)
 
 ## Installation
 
-Clone the repository and `cd` into the `Irrvuan` directory. You
+Clone the repository and `cd` into the `irrvuan` directory. You
 should perform all operations in this directory. So make sure to
 have sufficient free space on the file system to hold the
 generated image files!
@@ -67,12 +67,16 @@ would permit.
 * The main script is called `build-image.sh`. It draws on several
   modules: `main.cfg`, `helper` and `stage_0` to `stage_3`. It
   expects at least one required argument, namely the name of a
-  flavor to build. An alternative configuration file can be passed
-  to the script by using the `-c` option.
+  flavor to build, e.g.:
 
-* The `main.cfg` file contains the basic build environment
-  settings. You should not modify it unless you really know what
-  you're doing!
+            ./build-image.sh basic
+
+* The `main.cfg` file contains the basic build environment settings.
+  You should not modify it unless you really know what you're doing!
+  An alternative main configuration file can be passed to the script
+  by using the `-c` option, e.g.:
+
+            ./build-image.sh -c myconf basic
 
 * The `build` directory is where the generated disk images are
   created. In a similar fashion the `log`, `mnt` and `tmp`
@@ -94,30 +98,30 @@ would permit.
 
 Each flavor subdirectory may contain the following elements:
 
-> `overlay`
->>  a directory containing files and folders that will be copied
->>  to the resulting disk image during stage 3 (see below).
+* `overlay`
+> a directory containing files and folders that will be copied
+> to the resulting disk image during stage 3 (see below).
 
-> `xtrapkg`
->>  a directory containing additional `.deb` packages to be
->>  installed during stage 3.
+* `xtrapkg`
+> a directory containing additional `.deb` packages to be
+> installed during stage 3.
 
-> `base`
->>  a file that should either be empty or consist of a single line
->>  that references another flavor the current one builds up on.
+* `base`
+> a file that should either be empty or consist of a single line
+> that references another flavor the current one builds up on.
 
-> `chrootinst`
->>  a script that is run via `chroot` inside the target system.
+* `chrootinst`
+> a script that is run via `chroot` inside the target system.
 
-> `config`
->>  file containing bash variable definitions for various aspects
->>  of the system image to be generated. See the `flavor/README`
->>  file to learn more about the settings that are available in
->>  this file.
+* `config`
+> file containing bash variable definitions for various aspects
+> of the system image to be generated. See the `flavor/README.md`
+> file to learn more about the settings that are available in
+> this file.
 
-> `pkglist`
->>  list of additional packages to be installed or purged via
->>  `apt-get`, or to be configured by `dpgk-reconfigure`.
+* `pkglist`
+> list of additional packages to be installed or purged via
+> `apt-get`, or to be configured by `dpgk-reconfigure`.
 
 In theory all of the components mentioned above are optional.
 However, it is advisable to have all of them present at least in
@@ -184,9 +188,9 @@ notion of what this is about.
 
 ### What else?
 
-* The supplemental `raw2cooked.sh` script can aid you in converting
-the 'raw' disk images produced by `build-image.sh` into some more
-common formats like e.g. `.qcow` or `.vdi`. It should be pretty
+The supplemental `raw2cooked.sh` script can aid you in converting
+the 'raw' disk images produced by `build-image.sh` into one of several
+more common formats like e.g. `qcow` or `vdi`. It should be pretty
 self-explanatory.
 
 
