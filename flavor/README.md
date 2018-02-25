@@ -6,16 +6,16 @@ Each flavor subdirectory may contain one or more of the following
 elements:
 
 * `base` -- text file
-> Either empty, or consisting of a single line to specify the
-  name of another flavor to merge.
+> Either empty, or consisting of a single line to specify the name
+> (not path!) of another flavor to merge.
 
 * `chrootinst` -- bash script
 > Either empty, or containing instructions that are executed
 > inside a `chroot` environment on the target system.
 > Among other things it is responsible for setting up accounts,
 > configuring console settings, processing `xtrapkg` and `pkglist`
-> and installing the boot loader. The `chrrotinst` script provided
-> in the sample `basic` flavor should give a good impression of
+> and installing the boot loader. The `chrootinst` script provided
+> in the `basic` flavor sample should give a good impression of
 > the tasks performed.
 > Certain variables get substituted when the script is copied
 > to the disk image, see below.
@@ -23,13 +23,12 @@ elements:
 * `config` -- bash fragment
 > Either empty or containing variable assignments to control the
 > build process and define relevant settings in the target system.
-> See below for a comprehensive list of variables .
+> See below for a comprehensive list of available variables .
 
 * `overlay` -- directory tree
-> Either empty, or containing arbitrary files and folders that
-> get copied to the produced disk image.
-> Certain variables get substituted when files are copied
-> to the disk image, see below for a comprehensive list.
+> Either empty, or containing arbitrary files and folders to copy
+> to the target system. Certain variables get substituted when
+> files are copied, see below for a comprehensive list.
 
 * `xtrapkg` -- flat directory
 > Either empty, or containing additional `.deb` packages to
@@ -59,16 +58,15 @@ elements:
 
 * IMAGE_VER
 > version tag to be used in image file name
->
-> **Note:**
-> Alternatively, you can directly set the internal `$IMGNAME`
-> variable, in which case the `IMAGE_PRE` and `IMAGE_VER` settings
-> are ignored and the script will not compose an image file name
-> for you.
-> Furthermore, you may reference the internal variables `$FLAVOR`
-> (containing the flavor name) and `$START` (containing an ISO 8601
-> time stamp representing the start date and time of the build
-> process) in any of the above image name settings.
+
+**Note:**
+Alternatively you can set the internal `$IMGNAME` variable directly,
+in which case the `IMAGE_PRE` and `IMAGE_VER` settings are ignored
+and the script will not compose an image file name for you. You may
+reference the internal variables `$FLAVOR` (containing the flavor
+name) and `$START` (an ISO 8601 time stamp representing the start
+date and time of the build process) in any of the image name
+settings mentioned above.
 
 * IMAGE_SIZE
 > overall size of the disk image in MiB (megabytes base 2)
@@ -98,11 +96,11 @@ elements:
 
 * ARCH
 > target system architecture, e.g. `amd64` or `i386`.
->
-> **Note:** As the build script expects the second stage of
-> `debootstrap` to run automatically and later executes a shell
-> in a `chroot` environment, only architectures that are binary
-> compatible with the host system can reasonably be used here.
+
+**Note:** As the build script expects the second stage of
+`debootstrap` to run automatically and later executes a shell in a
+`chroot` environment, only architectures that are binary compatible
+with the host system can reasonably be used here.
 
 * KERNEL
 > kernel package to install
@@ -121,7 +119,7 @@ elements:
 > further information)
 
 * SUITE
-> codename of the OS suite to install, e.g. `ascii`
+> codename of the OS suite to install, e.g. `jessie` or `ascii`
 
 * MIRURL
 > URL of the repository mirror to use, see `debootstrap` man page
@@ -153,7 +151,7 @@ elements:
 > during `pkglist` processing
 
 * OPENCHROOTSH
-> start an interactive `bash` session in chroot, after all automated
+> start an interactive `bash` session in chroot after all automated
 > tasks ran to completion, right before unmounting the partitions
 
 
@@ -195,7 +193,14 @@ as all the files originating from the merged `overlay` directory:
 > set to the loop device node on the host system associated with the
 > target image (crucial for MBR boot loader installation)
 
+* `$_OVL_BOOTP_`
+> set to the host device node associated with the target boot partition
+
+* `$_OVL_ROOTP_`
+> set to the host device node associated with the target root partition
+
 * `$_OVL_APTGETOPT_`
 > set to `$APTGETOPT`, see above
 
 
+------------------------------------------------------------------------

@@ -6,12 +6,6 @@ virtual disk images suitable for plugging into qemu or VirtualBox.
 
 ## Description
 
-### Motivation
-
-I wanted to have available a simple tool to mass produce Devuan
-OS images for testing purposes. Plus, I needed to brush up my
-rusty shell programming skills. ;-)
-
 ### What it is
 
 * Irrvuan is basically a glorified wrapper script for debootstrap
@@ -35,6 +29,12 @@ rusty shell programming skills. ;-)
   which is far more sophisticated and has a much broader range
   of possible applications.
 
+### Motivation
+
+I wanted to have available a simple tool to mass produce Devuan
+OS images for testing purposes. Plus, I needed to brush up my
+rusty shell programming skills. ;-)
+
 
 ## Installation
 
@@ -48,16 +48,19 @@ generated image files!
 
 A lot of operations performed by `build-image.sh` require
 superuser permissions. A poor choice of configuration settings,
-especially in `main.cfg`, can cause severe damage to the host
-system! The author of this script takes no liability for any
-damage caused by running it on your machine, you do so at your
-own risk. **You have been warned!**
+especially in `main.cfg`, can potentially cause severe damage to
+the host system! The author of this script takes no liability
+whatsoever for any damage caused by running it on your machine,
+you do so at your own risk. **You have been warned!**
 
-**NOTE:** The script uses `sudo` to gain root permissions when
+**NOTE:** The script uses `sudo` to gain root permissions where
 needed. Thus you need to have `sudo` installed and configured
 for your user, preferably with a decent password timeout. Or even
 no password configured at all, if your personal security standards
-would permit.
+would permit. (BTW: `build-image.sh` will not litter your working
+directory with files owned by root, all superuser operations are
+restricted to the target image file which is owned by your user
+account.)
 
 
 ## Usage
@@ -65,9 +68,8 @@ would permit.
 ### Overview
 
 * The main script is called `build-image.sh`. It draws on several
-  modules: `main.cfg`, `helper` and `stage_0` to `stage_3`. It
-  expects at least one required argument, namely the name of a
-  flavor to build, e.g.:
+  modules: `helper` and `stage_0` to `stage_3` and expects at least
+  one required argument, namely the name of a flavor to build, e.g.:
 
             ./build-image.sh basic
 
@@ -89,10 +91,10 @@ would permit.
 * The `flavor` directory is where you will do most of the work.
   It contains a subdirectory for each system configuration variant,
   called a *flavor*. Flavors can build up on one another, so you
-  can easily create more elaborate configurations by building upon
+  can easily create more elaborate configurations by building up on
   simpler ones without having to duplicate the entire configuration.
-  Likewise, changes you make to a subordinate flavor will
-  automatically propagate to those flavors that build upon it.
+  Likewise, changes you make to a flavor will automatically propagate
+  to other flavors that build upon it.
 
 ### Anatomy of a flavor
 
@@ -115,9 +117,7 @@ Each flavor subdirectory may contain the following elements:
 
 * `config`
 > file containing bash variable definitions for various aspects
-> of the system image to be generated. See the `flavor/README.md`
-> file to learn more about the settings that are available in
-> this file.
+> of the system image to be generated.
 
 * `pkglist`
 > list of additional packages to be installed or purged via
@@ -126,38 +126,47 @@ Each flavor subdirectory may contain the following elements:
 In theory all of the components mentioned above are optional.
 However, it is advisable to have all of them present at least in
 the basic flavor definitions you intend to use. In higher level
-flavors on the other hand, it is common to omit components that
-are not needed to add to or change any settings. (However, the
+flavors on the other hand it is common to omit components that
+are not needed to add or change any settings. (However, the
 `base` file will of course always be present in such cases, as
 it provides the required link to the next lower level flavor.)
+
+See the `flavor/README.md` file to learn more about the makeup
+of flavors and the available settings.
 
 ### Script operation
 
 When the `build-image.sh` script is run with the name of a flavor
 as argument, it will first trace the chain of flavor dependencies
-by evaluating the `base` files , merge the components of all linked
-flavors in a temporary directory and then progresses through the
+by evaluating the `base` files, merge the components of all linked
+flavors in a temporary directory and then progress through the
 build phases outlined below to finally produce a single virtual
-disk image file containing a complete system installation.
+disk image file containing a complete target system installation.
+
+A trap handler will allow for graceful termination in case the
+script encounters an error condition or is interrupted by the user.
+This should take care of clearing out any dangling mounts or loop
+device associations.
 
 #### Stage 0: Merge and configure
 
 Progressing along the flavor link chain from bottom to top, the
 following operations take place:
 
-* The `overlay` and `xtrapkg` folders of all linked flavors are
-  amalgamated, i.e. they are copied on top of each other, to the
-  effect that files in higher level flavors will potentially
-  overwrite existing ones originating from subordinate flavors.
+1. The `overlay` and `xtrapkg` folders of all linked flavors are
+   amalgamated, i.e. they are copied on top of each other, to the
+   effect that files in higher level flavors will potentially
+   overwrite already existing ones originating from subordinate
+   flavors.
 
-* The respective `chrootinst`, `pkglist` and `config` files of all
-  flavors are concatenated, in order. The resulting files thus
-  each contain all the information that was originally present in
-  the individual files.
+2. The respective `chrootinst`, `pkglist` and `config` files of all
+   flavors are concatenated, in order. The resulting files thus
+   each contain all the information that was originally present in
+   the individual files.
 
-* The resulting `config` file is sourced to obtain a complete set
-  of build variables. The build environment is then initialized
-  accordingly.
+3. The resulting `config` file is sourced to obtain a complete set
+   of build variables. The build environment is then initialized
+   accordingly.
 
 #### Stage 1: Prepare the image file
 
@@ -172,11 +181,11 @@ The base system is installed by running `debootstrap` as configured.
 
 #### Stage 3: Copy additional components, execute chroot
 
-A defined set of special variables in `chrootinst` as well as in
-all files in the merged `overlay` directory get substituted. All
-of `overlay`, `xtrapkg`, `pkglist` and `chrootinst` is copied to
-the loop device. The `chrootinst` script is executed inside a
-chroot environment on the target system.
+All of `overlay`, `xtrapkg`, `pkglist` and `chrootinst` is copied to
+the loop device. A defined set of special variables in `chrootinst`
+as well as in all files coming from the merged `overlay` directory
+get substituted.  The `chrootinst` script is executed inside a chroot
+environment on the target system.
 
 The `chrootinst` script is an essential component, as it is here
 where vital tasks like e.g. password configuration, additional
@@ -190,11 +199,14 @@ notion of what this is about.
 
 The supplemental `raw2cooked.sh` script can aid you in converting
 the 'raw' disk images produced by `build-image.sh` into one of several
-more common formats like e.g. `qcow` or `vdi`. It should be pretty
-self-explanatory.
+formats commonly accepted by various virtual machines, like e.g.
+`qcow` or `vdi`. It should be pretty self-explanatory.
 
 
 ## License
 
 Irrvuan is distributed under the Modified ("3-clause") BSD License.
 See the `LICENSE` file for more information.
+
+
+------------------------------------------------------------------------
