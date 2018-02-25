@@ -196,5 +196,5 @@ self-explanatory.
 
 ## License
 
-Frelay is distributed under the Modified ("3-clause") BSD License.
+Irrvuan is distributed under the Modified ("3-clause") BSD License.
 See the `LICENSE` file for more information.
