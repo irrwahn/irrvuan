@@ -33,6 +33,8 @@ function Stage_3() {
         _OVL_USERPW_=$USERPW \
         _OVL_ROOTPW_=$ROOTPW \
         _OVL_LOOPD_=$LOOPD \
+        _OVL_BOOTP_=$BOOTP \
+        _OVL_ROOTP_=$ROOTP \
         _OVL_APTGETOPT_=$APTGETOPT
 
     local _ovl_vars='\
@@ -46,6 +48,8 @@ function Stage_3() {
         $_OVL_USERPW_ \
         $_OVL_ROOTPW_ \
         $_OVL_LOOPD_ \
+        $_OVL_BOOTP_ \
+        $_OVL_ROOTP_ \
         $_OVL_APTGETOPT_'
 
     # Substitute variables in overlay and chrootinst, copy stuff to image:
