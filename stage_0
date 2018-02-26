@@ -103,7 +103,7 @@ function Stage_0() {
     log "ROOTP_LABEL=$ROOTP_LABEL"
     log "BOOTP_FS=$BOOTP_FS"
     log "ROOTPW=$ROOTPW"
-    log "USER=$USER"
+    log "USERNM=$USERNM"
     log "USERPW=$USERPW"
     log "HOSTNAME=$HOSTNAME"
     log "DOMAIN=$DOMAIN"

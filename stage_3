@@ -29,7 +29,7 @@ function Stage_3() {
         _OVL_ROOTP_FS_=$ROOTP_FS \
         _OVL_BOOTP_LABEL_=$BOOTP_LABEL \
         _OVL_BOOTP_FS_=$BOOTP_FS \
-        _OVL_USER_=$USER \
+        _OVL_USERNM_=$USERNM \
         _OVL_USERPW_=$USERPW \
         _OVL_ROOTPW_=$ROOTPW \
         _OVL_LOOPD_=$LOOPD \
@@ -44,7 +44,7 @@ function Stage_3() {
         $_OVL_ROOTP_FS_ \
         $_OVL_BOOTP_LABEL_ \
         $_OVL_BOOTP_FS_ \
-        $_OVL_USER_ \
+        $_OVL_USERNM_ \
         $_OVL_USERPW_ \
         $_OVL_ROOTPW_ \
         $_OVL_LOOPD_ \

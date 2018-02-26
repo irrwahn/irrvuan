@@ -33,7 +33,7 @@ MIRURL=http://pkgmaster.devuan.org/merged
 DEBSTR_XTRA=--merged-usr
 
 ROOTPW=toor
-USER=user
+USERNM=user
 USERPW=user
 HOSTNAME=$FLAVOR
 DOMAIN=

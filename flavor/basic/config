@@ -34,7 +34,7 @@ DEBSTR_XTRA=        # extra arguments to pass to debootstrap
 
 # Sensible defaults for system configuration:
 ROOTPW=toor
-USER=user
+USERNM=user
 USERPW=user
 HOSTNAME=$FLAVOR
 DOMAIN=

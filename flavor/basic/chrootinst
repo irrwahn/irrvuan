@@ -18,8 +18,8 @@ dpkg-reconfigure -f noninteractive tzdata
 
 echo "Enable shadow passwords, create user account, set passwords"
 /sbin/shadowconfig on
-/usr/sbin/useradd -u 1000 -c "$_OVL_USER_" -m -s /bin/bash $_OVL_USER_
-echo "$_OVL_USER_:$_OVL_USERPW_" | /usr/sbin/chpasswd
+/usr/sbin/useradd -u 1000 -c "$_OVL_USERNM_" -m -s /bin/bash $_OVL_USERNM_
+echo "$_OVL_USERNM_:$_OVL_USERPW_" | /usr/sbin/chpasswd
 echo "root:$_OVL_ROOTPW_" | /usr/sbin/chpasswd
 
 echo "Perform additional package actions"

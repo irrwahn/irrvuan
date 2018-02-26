@@ -134,7 +134,7 @@ with the host system can reasonably be used here.
 * ROOTPW
 > password to set for the root account
 
-* USER
+* USERNM
 > name to use for the unprivileged user account
 
 * USERPW
@@ -180,8 +180,8 @@ as all the files originating from the merged `overlay` directory:
 * `$_OVL_BOOTP_FS_`
 > set to `$BOOTP_FS`, see above
 
-* `$_OVL_USER_`
-> set to `$USER`, see above
+* `$_OVL_USERNM_`
+> set to `$USERNM`, see above
 
 * `$_OVL_USERPW_`
 > set to `$USERPW`, see above
