@@ -151,8 +151,21 @@ with the host system can reasonably be used here.
 > during `pkglist` processing
 
 * OPENCHROOTSH
-> start an interactive `bash` session in chroot after all automated
-> tasks ran to completion, right before unmounting the partitions
+> boolean; start an interactive `bash` session in chroot after all
+> automated tasks ran to completion, right before unmounting the
+> partitions
+
+
+### 4. Parameters for live ISO image generation
+
+* ISOCREATE
+> boolean; build a bootable live ISO image from target system
+
+* ISOVOLID
+> volume ID for live ISO image
+
+* ISOMENULABEL
+> boot menu entry for live ISO image
 
 
 ## Variable substitution

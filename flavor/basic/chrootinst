@@ -11,6 +11,7 @@ fi
 
 echo "Configure locale, console, timezone"
 unset LANGUAGE LANG LC_ALL
+export LC_ALL=C
 /usr/sbin/locale-gen
 . /etc/default/locale
 /bin/setupcon -v --save-only

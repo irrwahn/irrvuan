@@ -81,7 +81,7 @@ function Stage_1_cleanup() {
     log "--- ${FUNCNAME[0]} ---"
     local u
     for u in $UMOUNT ; do
-        sudo umount -v $u 2>&1 | tee -a "$LOGFILE"
+        sudo umount -lfv $u 2>&1 | tee -a "$LOGFILE"
     done
     sync
     log "Remove loop device: $LOOPD"

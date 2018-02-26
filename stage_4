@@ -1,0 +1,84 @@
+######################################################################
+# This file is part of the Irrvuan OS image builder script suite.
+#
+# Copyright 2018 Urban Wallasch <irrwahn35@freenet.de>
+#
+# See LICENSE file for more details.
+#
+
+function Stage_4() {
+    if [ $ISOCREATE -eq 0 ] ; then
+        return
+    fi
+
+    log "--- ${FUNCNAME[0]} build ISO image ---"
+    CLEANUP="Stage_4_cleanup $CLEANUP"
+
+    sudo umount -lf "$MOUNTP/sys" "$MOUNTP/proc" 2>/dev/null
+    sudo umount -lf "$MOUNTP/dev/pts" "$MOUNTP/dev" 2>/dev/null
+
+    local ISODIR="$TMPDIR/iso/"
+    mkdir -p "$ISODIR/isolinux" | tee -a "$LOGFILE"
+    mkdir -p "$ISODIR/live" | tee -a "$LOGFILE"
+
+    log "Copy kernel and initrd"
+    local kernel=$(ls $MOUNTP/boot/vmlinuz* | head -n1)
+    local initrd=${kernel//vmlinuz/initrd.img}
+    cp -vdR --preserve=mode,links "$kernel" "$ISODIR/live/vmlinuz" \
+        | tee -a "$LOGFILE"
+    cp -vdR --preserve=mode,links "$initrd" "$ISODIR/live/initrd.img" \
+        | tee -a "$LOGFILE"
+
+    log "Create sqashfs"
+    touch "$ISODIR/live/filesystem.squashfs"
+    sudo mksquashfs "$MOUNTP" "$ISODIR/live/filesystem.squashfs" \
+        -noappend -wildcards -e 'boot/*' 2>> "$LOGFILE"
+
+    log "Copy isolinux modules"
+    cp -v /usr/lib/syslinux/modules/bios/* "$ISODIR/isolinux/" \
+        | tee -a "$LOGFILE"
+    cp -v /usr/lib/ISOLINUX/isolinux.bin "$ISODIR/isolinux/" \
+        | tee -a "$LOGFILE"
+
+    log "Create isolinux.cfg"
+    cat <<EOHEREDOC | tee "$ISODIR/isolinux/isolinux.cfg"
+UI menu.c32
+PROMPT 0
+MENU TITLE Live Boot Menu
+TIMEOUT 300
+
+LABEL live
+  MENU LABEL $ISOMENULABEL
+  MENU DEFAULT
+  KERNEL /live/vmlinuz
+  APPEND initrd=/live/initrd.img boot=live toram=filesystem.squashfs
+
+LABEL disk0
+  MENU LABEL ^Internal Boot (0x80)
+  LOCALBOOT 0
+EOHEREDOC
+
+    log "Generate ISO image"
+    local ISOFILE="${IMGFILE%.*}.iso"
+    genisoimage \
+        -rational-rock \
+        -volid "$ISOVOLID" \
+        -cache-inodes \
+        -joliet \
+        -full-iso9660-filenames \
+        -b isolinux/isolinux.bin \
+        -c isolinux/boot.cat \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -output "$ISOFILE" \
+        "$ISODIR" \
+        2>&1 | tee -a "$LOGFILE"
+
+}
+
+function Stage_4_cleanup() {
+    log "--- ${FUNCNAME[0]} ---"
+}
+
+# EOF

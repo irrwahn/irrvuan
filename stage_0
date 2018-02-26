@@ -56,28 +56,41 @@ function Stage_0() {
         done
     done
     IFS=$oifs
+
+    # Source and fix-up build config:
     . "$TMPDIR/config"
+    [ -z "$IMGNAME" ] && IMGNAME="$IMAGE_PRE-$IMAGE_VER-$ARCH-$TIMETAG"
+    OPENCHROOTSH=$(istrue "$OPENCHROOTSH")
+    ISOCREATE=$(istrue "$ISOCREATE")
+    if [ $ISOCREATE -ne 0 ] ; then
+        [ -z "$ISOVOLID" ] && ISOVOLID="Live ISO"
+        [ -z "$ISOMENULABEL" ] && ISOMENULABEL="^Live Boot"
+    fi
 
     # Check prerequisites:
     log "Check prerequisites"
-    local cmd
+    local cmd o
     for cmd in bc envsubst truncate sudo ; do
-        local o=$(command -pv $cmd) || check $? "$cmd command not found!"
+        o=$(command -pv $cmd) || check $? "$cmd command not found!"
         #log "have $o"
     done
     sudo echo "" > /dev/null || check $? "sudo: FAIL!"
     #log "sudo: passed"
     for cmd in debootstrap losetup parted mkfs.$BOOTP_FS mkfs.$ROOTP_FS ; do
-        local o=$(command -v $cmd) || check $? "$cmd command not found!"
+        o=$(command -v $cmd) || check $? "$cmd command not found!"
         #log "have $o"
     done
     local v=$(losetup -V | grep -Eo '[0-9]+\.[0-9]+')
     check $( echo "$v < 2.21" | bc ) "losetup >= 2.21 is required!"
     #log "losetup: $v.x"
+    if [ $ISOCREATE -ne 0 ] ; then
+        for cmd in genisoimage mksquashfs syslinux ; do
+            o=$(command -pv $cmd) || check $? "$cmd command not found!"
+            #log "have $o"
+        done
+    fi
 
-    # Fix-up and dump build config:
-    OPENCHROOTSH=$(istrue "$OPENCHROOTSH")
-    [ -z "$IMGNAME" ] && IMGNAME="$IMAGE_PRE-$IMAGE_VER-$ARCH-$TIMETAG"
+    # Dump build config:
     IMGFILE=$BUILDDIR/$IMGNAME.img
     log "----- Build dirs -----"
     log "LOGDIR=$LOGDIR"
@@ -110,6 +123,10 @@ function Stage_0() {
     log "APTGETOPT=$APTGETOPT"
     log "OPENCHROOTSH=$OPENCHROOTSH"
     log "IMGFILE=$IMGFILE"
+    log "----- Live ISO config -----"
+    log "ISOCREATE=$ISOCREATE"
+    log "ISOVOLID=$ISOVOLID"
+    log "ISOMENULABEL=$ISOMENULABEL"
 
     # When running interactively allow user to opt out now:
     if [ -t 0 ] ; then

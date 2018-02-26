@@ -78,14 +78,14 @@ function Stage_3() {
         echo "Ctrl-D or exit to continue."
         sudo chroot "$MOUNTP" /bin/bash
     fi
+    sudo rm -fv "$MOUNTP/chrootinst" "$MOUNTP/pkglist" 2>&1 | tee -a "$LOGFILE"
+    sudo rm -frv "$MOUNTP/xtrapkg" "$MOUNTP/data" 2>&1 | tee -a "$LOGFILE"
 }
 
 function Stage_3_cleanup() {
     log "--- ${FUNCNAME[0]} ---"
-    sudo rm -fv "$MOUNTP/chrootinst" "$MOUNTP/pkglist" 2>&1 | tee -a "$LOGFILE"
-    sudo rm -frv "$MOUNTP/xtrapkg" "$MOUNTP/data" 2>&1 | tee -a "$LOGFILE"
-    sudo umount -v "$MOUNTP/sys" "$MOUNTP/proc" 2>&1 | tee -a "$LOGFILE"
-    sudo umount -v "$MOUNTP/dev/pts" "$MOUNTP/dev" 2>&1 | tee -a "$LOGFILE"
+    sudo umount -lf "$MOUNTP/sys" "$MOUNTP/proc" 2>/dev/null
+    sudo umount -lf "$MOUNTP/dev/pts" "$MOUNTP/dev" 2>/dev/null
     sync
 }
 

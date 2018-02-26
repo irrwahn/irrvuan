@@ -37,6 +37,7 @@ fi
 . "$WDIR/stage_1"
 . "$WDIR/stage_2"
 . "$WDIR/stage_3"
+. "$WDIR/stage_4"
 
 # Trap signals to facilitate graceful abort:
 trap_sig sig_handler INT QUIT TERM ERR
@@ -47,6 +48,7 @@ Stage_0     # Configure build settings
 Stage_1     # Prepare and loop-mount the image file
 Stage_2     # Debootstrap the base system
 Stage_3     # Prepare and work in chroot
+Stage_4     # Create live ISO image
 cleanup     # Clean up in reverse order
 log "Done, build took $(( $(datediff "$(ts_now)" "$START") / 60 )) min."
 exit 0
