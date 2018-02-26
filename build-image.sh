@@ -30,9 +30,6 @@ if [ -z "$MAINCFG" ] || [ ! -r "$MAINCFG" ] || [ -z "$FLAVOR" ] ; then
     exit 11
 fi
 
-# Trap signals to facilitate graceful abort:
-trap_sig sig_handler INT QUIT TERM ERR
-
 # Source main configuration and modules:
 . "$MAINCFG"
 . "$WDIR/helper"
@@ -40,6 +37,9 @@ trap_sig sig_handler INT QUIT TERM ERR
 . "$WDIR/stage_1"
 . "$WDIR/stage_2"
 . "$WDIR/stage_3"
+
+# Trap signals to facilitate graceful abort:
+trap_sig sig_handler INT QUIT TERM ERR
 
 # Run the build stages:
 START=$(ts_now)
