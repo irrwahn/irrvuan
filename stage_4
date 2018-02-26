@@ -80,6 +80,13 @@ EOHEREDOC
         "$ISODIR" \
         2>&1 | tee -a "$LOGFILE"
 
+    # Make ISO image hybrid bootable
+    if command -pv isohybrid ; then
+        log "Note: 'isohybrid' found, patching ISO image for USB boot."
+        isohybrid -v "$ISOFILE" 2>&1 | tee -a "$LOGFILE"
+    else
+        log "Warning: 'isohybrid' not found, image will not be USB bootable!"
+    fi
 }
 
 function Stage_4_cleanup() {
