@@ -194,6 +194,12 @@ You are encouraged to have a closer look at the included example
 flavors, particularly the one named `basic`, to get a more detailed
 notion of what this is about.
 
+#### Stage 4: Create an bootable ISO image
+
+This step is optional: If enabled in the configuration, an additional
+ISO image is produced that can be burned to a CD or DVD, or (provided
+the `isohybrid` utility was available during creation) even be booted
+straight from a USB pen drive.
 
 ### What else?
 
