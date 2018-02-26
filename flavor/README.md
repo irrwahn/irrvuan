@@ -75,7 +75,7 @@ settings mentioned above.
 > size of the boot partition in MiB (megabytes base 2)
 
 * BOOTP_LABEL
-> boot partition label (used in `/etc/fstab`)
+> boot partition label
 
 * BOOTP_FS
 > file system to use for boot partition; one of: `ext2`, `ext3`,
@@ -85,7 +85,7 @@ settings mentioned above.
 > size of the root partition in MiB (megabytes base 2)
 
 * ROOTP_LABEL
-> root partition label (used in `/etc/fstab`)
+> root partition label
 
 * ROOTP_FS
 > file system to use for boot partition; one of: `ext2`, `ext3`,
