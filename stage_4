@@ -24,24 +24,29 @@ function Stage_4() {
     log "Copy kernel and initrd"
     local kernel=$(ls $MOUNTP/boot/vmlinuz* | head -n1)
     local initrd=${kernel//vmlinuz/initrd.img}
-    cp -vdR --preserve=mode,links "$kernel" "$ISODIR/live/vmlinuz" \
-        | tee -a "$LOGFILE"
-    cp -vdR --preserve=mode,links "$initrd" "$ISODIR/live/initrd.img" \
-        | tee -a "$LOGFILE"
+    cp -v --preserve=mode,timestamps "$kernel" "$ISODIR/live/vmlinuz" \
+        2>&1 | tee -a "$LOGFILE"
+    cp -v --preserve=mode,timestamps "$initrd" "$ISODIR/live/initrd.img" \
+        2>&1 | tee -a "$LOGFILE"
 
     log "Create sqashfs"
     touch "$ISODIR/live/filesystem.squashfs"
-    sudo mksquashfs "$MOUNTP" "$ISODIR/live/filesystem.squashfs" \
-        -noappend -wildcards -e 'boot/*' 2>> "$LOGFILE"
+    sudo mksquashfs \
+        "$MOUNTP" \
+        "$ISODIR/live/filesystem.squashfs" \
+        -noappend \
+        -no-progress \
+        -wildcards -e 'boot/*' \
+        2>&1 | tee -a "$LOGFILE"
 
-    log "Copy isolinux modules"
-    cp -v /usr/lib/syslinux/modules/bios/* "$ISODIR/isolinux/" \
-        | tee -a "$LOGFILE"
-    cp -v /usr/lib/ISOLINUX/isolinux.bin "$ISODIR/isolinux/" \
-        | tee -a "$LOGFILE"
+    log "Copy isolinux and modules"
+    cp -v --preserve=mode,timestamps /usr/lib/ISOLINUX/isolinux.bin \
+        "$ISODIR/isolinux/" 2>&1 | tee -a "$LOGFILE"
+    cp -v --preserve=mode,timestamps /usr/lib/syslinux/modules/bios/* \
+        "$ISODIR/isolinux/" 2>&1 | tee -a "$LOGFILE"
 
     log "Create isolinux.cfg"
-    cat <<EOHEREDOC | tee "$ISODIR/isolinux/isolinux.cfg"
+    cat <<EOHEREDOC | tee "$ISODIR/isolinux/isolinux.cfg" | tee -a "$LOGFILE"
 UI menu.c32
 PROMPT 0
 MENU TITLE Live Boot Menu
