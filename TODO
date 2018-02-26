@@ -1,6 +1,10 @@
 
+Enhancements:
+-------------
+* add config settings and/or auto-locate for syslinux.bin and syslinux modules
+
+
 Wishlist items:
 ---------------
 * provide more flexible partitioning scheme
-* provide separate script for raw image to ISO conversion
 
