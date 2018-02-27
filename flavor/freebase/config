@@ -1,0 +1,55 @@
+# config for flavor 'freebase'
+
+# Any variables declared below can be amended or overridden by
+# corresponding settings in the individual flavor's conf-file.
+
+# Sensible defaults for disk image parameters:
+IMAGE_PRE="Irrvuan-$FLAVOR"
+IMAGE_VER="0.0.2~beta1"
+IMAGE_SIZE=4096
+
+BOOTP_SIZE=127
+BOOTP_LABEL=IBOOT
+BOOTP_FS=ext4
+
+ROOTP_SIZE=3968
+ROOTP_LABEL=IROOT
+ROOTP_FS=ext4
+
+# Sensible defaults for debootstrap parameters:
+ARCH=amd64
+KERNEL=linux-image-amd64
+BASEPKG=grub-pc,\
+openrc,\
+firmware-linux-free,\
+console-setup,\
+console-setup-linux,\
+locales,\
+keyboard-configuration,\
+busybox-static,\
+live-boot
+
+COMPONENTS=main
+VARIANT=
+SUITE=ascii
+MIRURL=http://pkgmaster.devuan.org/merged
+DEBSTR_XTRA=
+
+# Sensible defaults for system configuration:
+ROOTPW=toor
+USERNM=user
+USERPW=user
+HOSTNAME=$FLAVOR
+DOMAIN=
+APTGETOPT="--no-install-recommends"
+OPENCHROOTSH=no
+
+# Sensible defaults for live ISO image generation:
+ISOCREATE=yes
+ISOVOLID="IRRVUAN_LIVE"
+ISOMENULABEL="Irrvuan Live"
+ISOGENCMD=
+ISOLINUXBIN=
+ISOLINUXMOD=
+
+# EOF
