@@ -18,7 +18,7 @@ function Stage_0() {
     MOUNTP="$MOUNTP/$FLAVOR"
     log "Log started"
     log "Irrvuan OS image builder script v$SCRIPT_VERSION"
-    if [ -n "$(ls -A "$TMPDIR")" ] ; then
+    if [ -n "$(ls -A "$TMPDIR" 2>/dev/null)" ] ; then
         pause "? Clear temp dir: $TMPDIR ?"
         rm -rf "$TMPDIR/"
     fi
@@ -65,6 +65,10 @@ function Stage_0() {
     if [ $ISOCREATE -ne 0 ] ; then
         [ -z "$ISOVOLID" ] && ISOVOLID="Live ISO"
         [ -z "$ISOMENULABEL" ] && ISOMENULABEL="^Live Boot"
+        [ -z "$ISOLINUXBIN" ] \
+            && ISOLINUXBIN=$(find /usr -name isolinux.bin | head -n1)
+        [ -z "$ISOLINUXMOD" ] \
+            && ISOLINUXMOD=$(find /usr -path '*syslinux*bios' | head -n1)
     fi
 
     # Check prerequisites:
@@ -84,10 +88,21 @@ function Stage_0() {
     check $( echo "$v < 2.21" | bc ) "losetup >= 2.21 is required!"
     #log "losetup: $v.x"
     if [ $ISOCREATE -ne 0 ] ; then
-        for cmd in genisoimage mksquashfs syslinux ; do
-            o=$(command -pv $cmd) || check $? "$cmd command not found!"
-            #log "have $o"
-        done
+        command -pv mksquashfs || check $? "mksquashfs command not found!"
+        if [ -n "$ISOGENCMD" ] ; then
+            [ command -pv "$ISOGENCMD" ] \
+                || check $? "$ISOGENCMD command not found!"
+        elif command -pv xorrisofs ; then
+            ISOGENCMD=xorrisofs
+        elif command -pv mkisofs ; then
+            ISOGENCMD=mkisofs
+        elif command -pv genisoimage ; then
+            ISOGENCMD=genisoimage
+        else
+            check 5 "no supported ISO builder found"
+        fi
+        [ -r "$ISOLINUXBIN" ] || check $? "isolinux.bin not found"
+        [ -d "$ISOLINUXMOD" ] || check $? "syslinux modules not found"
     fi
 
     # Dump build config:
@@ -127,6 +142,9 @@ function Stage_0() {
     log "ISOCREATE=$ISOCREATE"
     log "ISOVOLID=$ISOVOLID"
     log "ISOMENULABEL=$ISOMENULABEL"
+    log "ISOGENCMD=$ISOGENCMD"
+    log "ISOLINUXBIN=$ISOLINUXBIN"
+    log "ISOLINUXMOD=$ISOLINUXMOD"
 
     # When running interactively allow user to opt out now:
     if [ -t 0 ] ; then

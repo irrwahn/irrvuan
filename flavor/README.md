@@ -159,13 +159,28 @@ with the host system can reasonably be used here.
 ### 4. Parameters for live ISO image generation
 
 * ISOCREATE
-> boolean; build a bootable live ISO image from target system
+> boolean; enable build step to produce a bootable live ISO image
+> from target system
 
 * ISOVOLID
 > volume ID for live ISO image
 
 * ISOMENULABEL
-> boot menu entry for live ISO image
+> label for live ISO default boot menu entry
+
+* ISOGENCMD
+> utility to generate ISO image, e.g. `xorrisofs`, `mkisofs` or
+> `genisoimage`; if omitted, the script will try to pick a suitable
+> command
+
+* ISOLINUXBIN
+> full path of `isolinux.bin` file; if omitted, the script will try
+> to locate it automatically in the `/usr` hierarchy
+
+* ISOLINUXMOD
+> full path of directory containing the `syslinux` modules; if
+> omitted, the script will try to locate it automatically in the
+> `/usr` hierarchy
 
 
 ## Variable substitution

@@ -59,33 +59,31 @@ LABEL live
   APPEND initrd=/live/initrd.img boot=live toram=filesystem.squashfs
 
 LABEL disk0
-  MENU LABEL ^Internal Boot (0x80)
-  LOCALBOOT 0
+  MENU LABEL ^Internal Boot
+  LOCALBOOT -1
 EOHEREDOC
 
-    log "Generate ISO image"
+    log "Generate ISO image using $ISOGENCMD"
     local ISOFILE="${IMGFILE%.*}.iso"
-    genisoimage \
+    $ISOGENCMD \
         -rational-rock \
         -volid "$ISOVOLID" \
-        -cache-inodes \
         -joliet \
-        -full-iso9660-filenames \
         -b isolinux/isolinux.bin \
         -c isolinux/boot.cat \
         -no-emul-boot \
         -boot-load-size 4 \
         -boot-info-table \
-        -output "$ISOFILE" \
+        -o "$ISOFILE" \
         "$ISODIR" \
         2>&1 | tee -a "$LOGFILE"
 
-    # Make ISO image hybrid bootable
+    # Make ISO image hybrid bootable, if possible
     if command -pv isohybrid ; then
-        log "Note: 'isohybrid' found, patching ISO image for USB boot."
+        log "INFO: 'isohybrid' found, patching ISO image for USB boot."
         isohybrid -v "$ISOFILE" 2>&1 | tee -a "$LOGFILE"
     else
-        log "Warning: 'isohybrid' not found, image will not be USB bootable!"
+        log "WARNING: 'isohybrid' not found, image will not be USB bootable!"
     fi
 }
 
