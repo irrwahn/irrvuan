@@ -1,7 +1,8 @@
 # Irrvuan
 
 Irrvuan is a set of crude and simple bash scripts to build Devuan
-virtual disk images suitable for plugging into qemu or VirtualBox.
+disk images suitable for plugging into a virtual machine provider
+like qemu or VirtualBox.
 
 
 ## Description
@@ -207,6 +208,13 @@ The supplemental `raw2cooked.sh` script can aid you in converting
 the 'raw' disk images produced by `build-image.sh` into one of several
 formats commonly accepted by various virtual machines, like e.g.
 `qcow` or `vdi`. It should be pretty self-explanatory.
+
+
+## Release History
+
+| Version                                                        | Comment    |
+|----------------------------------------------------------------|------------|
+| [0.0.1](https://github.com/irrwahn/irrvuan/releases/tag/0.0.1) | "pro bono" |
 
 
 ## License
