@@ -53,8 +53,9 @@ fi
 apt-get -q clean
 
 update-initramfs -u -k all
-sed -i s/CMDLINE_LINUX_DEFAULT=\"quiet\"/CMDLINE_LINUX_DEFAULT=\"\"/ \
+sed -i 's/CMDLINE_LINUX_DEFAULT="quiet"/CMDLINE_LINUX_DEFAULT=""/' \
     /etc/default/grub
+sed -i 's/echo Debian/echo Devuan/' /etc/default/grub
 grub-install --boot-directory=/boot $_OVL_LOOPD_
 update-grub
 
