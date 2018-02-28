@@ -22,6 +22,7 @@ echo "Enable shadow passwords, create user account, set passwords"
 /usr/sbin/useradd -u 1000 -c "$_OVL_USERNM_" -m -s /bin/bash $_OVL_USERNM_
 echo "$_OVL_USERNM_:$_OVL_USERPW_" | /usr/sbin/chpasswd
 echo "root:$_OVL_ROOTPW_" | /usr/sbin/chpasswd
+chown -R "$_OVL_USERNM_:$_OVL_USERNM_" "/home/$_OVL_USERNM_"
 
 echo "Perform additional package actions"
 export DEBIAN_FRONTEND=noninteractive
