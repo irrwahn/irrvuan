@@ -48,6 +48,10 @@ elements:
                 i nice-package        # install 'nice-package'
                 c you-know-the-drill  # configure 'you-know-the-drill'
 
+* `isolinux` -- flat directory
+> Either empty, or containing isolinux configuration files, used
+> only when creating ISO an image.
+
 
 ## Settings defined in `config`
 
@@ -165,9 +169,6 @@ with the host system can reasonably be used here.
 * ISOVOLID
 > volume ID for live ISO image
 
-* ISOMENULABEL
-> label for live ISO default boot menu entry
-
 * ISOGENCMD
 > utility to generate ISO image, e.g. `xorrisofs`, `mkisofs` or
 > `genisoimage`; if omitted, the script will try to pick a suitable
@@ -183,7 +184,7 @@ with the host system can reasonably be used here.
 > `/usr` hierarchy
 
 
-## Variable substitution
+## Overlay variable substitution
 
 Below you find a comprehensive list of all special variables that get
 automatically substituted when copying the `chrootinst` script as well
@@ -229,6 +230,21 @@ as all the files originating from the merged `overlay` directory:
 
 * `$_OVL_APTGETOPT_`
 > set to `$APTGETOPT`, see above
+
+
+## Isolinux variable substitution
+
+The following variables are substituted in all files in the merged
+isolinux folder:
+
+* `$_ISO_KERNEL_`
+> set to the path of the kernel image (relative to ISO root)
+
+* `$_ISO_INITRD_`
+> set to the path of the initrd image (relative to ISO root)
+
+* `$_ISO_SQFS_`
+> set to the path of the squashfs image (relative to kernel)
 
 
 ------------------------------------------------------------------------

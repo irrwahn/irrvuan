@@ -17,54 +17,48 @@ function Stage_4() {
     sudo umount -lf "$MOUNTP/sys" "$MOUNTP/proc" 2>/dev/null
     sudo umount -lf "$MOUNTP/dev/pts" "$MOUNTP/dev" 2>/dev/null
 
+    export \
+        _ISO_KERNEL_="/live/vmlinuz" \
+        _ISO_INITRD_="/live/initrd.img" \
+        _ISO_SQFS_="filesystem.squashfs"
+    local ISOFILE="${IMGFILE%.*}.iso"
     local ISODIR="$TMPDIR/iso/"
     mkdir -p "$ISODIR/isolinux" | tee -a "$LOGFILE"
     mkdir -p "$ISODIR/live" | tee -a "$LOGFILE"
 
-    log "Copy kernel and initrd"
-    local kernel=$(ls $MOUNTP/boot/vmlinuz* | head -n1)
-    local initrd=${kernel//vmlinuz/initrd.img}
-    cp -v --preserve=mode,timestamps "$kernel" "$ISODIR/live/vmlinuz" \
-        2>&1 | tee -a "$LOGFILE"
-    cp -v --preserve=mode,timestamps "$initrd" "$ISODIR/live/initrd.img" \
-        2>&1 | tee -a "$LOGFILE"
-
     log "Create sqashfs"
-    touch "$ISODIR/live/filesystem.squashfs"
+    touch "$ISODIR/live/$_ISO_SQFS_"
     sudo mksquashfs \
         "$MOUNTP" \
-        "$ISODIR/live/filesystem.squashfs" \
+        "$ISODIR/live/$_ISO_SQFS_" \
         -noappend \
         -no-progress \
         -wildcards -e 'boot/*' \
         2>&1 | tee -a "$LOGFILE"
 
-    log "Copy isolinux and modules"
-    cp -v --preserve=mode,timestamps /usr/lib/ISOLINUX/isolinux.bin \
-        "$ISODIR/isolinux/" 2>&1 | tee -a "$LOGFILE"
-    cp -v --preserve=mode,timestamps /usr/lib/syslinux/modules/bios/* \
-        "$ISODIR/isolinux/" 2>&1 | tee -a "$LOGFILE"
+    log "Copy kernel and initrd"
+    local kernel=$(ls $MOUNTP/boot/vmlinuz* | head -n1)
+    local initrd=${kernel//vmlinuz/initrd.img}
+    cp -v --preserve=mode,timestamps "$kernel" "$ISODIR/$_ISO_KERNEL_" \
+        2>&1 | tee -a "$LOGFILE"
+    cp -v --preserve=mode,timestamps "$initrd" "$ISODIR/$_ISO_INITRD_" \
+        2>&1 | tee -a "$LOGFILE"
 
-    log "Create isolinux.cfg"
-    cat <<EOHEREDOC | tee "$ISODIR/isolinux/isolinux.cfg" | tee -a "$LOGFILE"
-UI menu.c32
-PROMPT 0
-MENU TITLE Live Boot Menu
-TIMEOUT 300
-
-LABEL live
-  MENU LABEL $ISOMENULABEL
-  MENU DEFAULT
-  KERNEL /live/vmlinuz
-  APPEND initrd=/live/initrd.img boot=live toram=filesystem.squashfs
-
-LABEL disk0
-  MENU LABEL ^Internal Boot
-  LOCALBOOT -1
-EOHEREDOC
+    log "Substitute isolinux variables and copy stuff"
+    local _iso_vars='\
+        $_ISO_KERNEL_ \
+        $_ISO_INITRD_ \
+        $_ISO_SQFS_'
+    find "$TMPDIR/isolinux/" -type f | \
+        while read f; do var_subst "$f" "$_iso_vars" ; done
+    cp -v --preserve=mode,timestamps "$ISOLINUXBIN" "$ISODIR/isolinux/"
+        2>&1 | tee -a "$LOGFILE"
+    cp -vR --preserve=mode,timestamps "$ISOLINUXMOD/." "$ISODIR/isolinux/"
+        2>&1 | tee -a "$LOGFILE"
+    cp -vR --preserve=mode,timestamps "$TMPDIR/isolinux/." "$ISODIR/isolinux/" \
+        2>&1 | tee -a "$LOGFILE"
 
     log "Generate ISO image using $ISOGENCMD"
-    local ISOFILE="${IMGFILE%.*}.iso"
     $ISOGENCMD \
         -rational-rock \
         -volid "$ISOVOLID" \

@@ -69,4 +69,14 @@ function sig_handler() {
     check 42 "caught signal $1"
 }
 
+# Perform in-place variable substitution:
+function var_subst() {
+    if [ -n "$1" ] ; then
+        log "${FUNCNAME[0]} $1"
+        local t=$(< "$1")
+        echo "$t" | envsubst "$2" > "$1"
+    fi
+}
+
+
 # EOF

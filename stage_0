@@ -50,7 +50,7 @@ function Stage_0() {
             [ -r "$FLAVDIR/$f/$d" ] && cat "$FLAVDIR/$f/$d" >> "$TMPDIR/$d"
         done
         # Amalgamate folders:
-        for d in overlay xtrapkg ; do
+        for d in overlay xtrapkg isolinux ; do
             mkdir -p "$TMPDIR/$d"
             [ -d "$FLAVDIR/$f/$d" ] &&  cp -a "$FLAVDIR/$f/$d/." "$TMPDIR/$d/"
         done
@@ -63,8 +63,7 @@ function Stage_0() {
     OPENCHROOTSH=$(istrue "$OPENCHROOTSH")
     ISOCREATE=$(istrue "$ISOCREATE")
     if [ $ISOCREATE -ne 0 ] ; then
-        [ -z "$ISOVOLID" ] && ISOVOLID="Live ISO"
-        [ -z "$ISOMENULABEL" ] && ISOMENULABEL="^Live Boot"
+        [ -z "$ISOVOLID" ] && ISOVOLID="IRRVUAN_LIVE"
         [ -z "$ISOLINUXBIN" ] \
             && ISOLINUXBIN=$(find /usr -name isolinux.bin | head -n1)
         [ -z "$ISOLINUXMOD" ] \
@@ -76,17 +75,13 @@ function Stage_0() {
     local cmd o
     for cmd in bc envsubst truncate sudo ; do
         o=$(command -pv $cmd) || check $? "$cmd command not found!"
-        #log "have $o"
     done
     sudo echo "" > /dev/null || check $? "sudo: FAIL!"
-    #log "sudo: passed"
     for cmd in debootstrap losetup parted mkfs.$BOOTP_FS mkfs.$ROOTP_FS ; do
         o=$(command -v $cmd) || check $? "$cmd command not found!"
-        #log "have $o"
     done
     local v=$(losetup -V | grep -Eo '[0-9]+\.[0-9]+')
     check $( echo "$v < 2.21" | bc ) "losetup >= 2.21 is required!"
-    #log "losetup: $v.x"
     if [ $ISOCREATE -ne 0 ] ; then
         command -pv mksquashfs || check $? "mksquashfs command not found!"
         if [ -n "$ISOGENCMD" ] ; then
@@ -141,7 +136,6 @@ function Stage_0() {
     log "----- Live ISO config -----"
     log "ISOCREATE=$ISOCREATE"
     log "ISOVOLID=$ISOVOLID"
-    log "ISOMENULABEL=$ISOMENULABEL"
     log "ISOGENCMD=$ISOGENCMD"
     log "ISOLINUXBIN=$ISOLINUXBIN"
     log "ISOLINUXMOD=$ISOLINUXMOD"

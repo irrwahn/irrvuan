@@ -154,11 +154,11 @@ device associations.
 Progressing along the flavor link chain from bottom to top, the
 following operations take place:
 
-1. The `overlay` and `xtrapkg` folders of all linked flavors are
-   amalgamated, i.e. they are copied on top of each other, to the
-   effect that files in higher level flavors will potentially
-   overwrite already existing ones originating from subordinate
-   flavors.
+1. The `overlay`, `xtrapkg` and `isolinux` folders of all linked
+   flavors are amalgamated, i.e. they are copied on top of each
+   other, to the effect that files in higher level flavors will
+   potentially overwrite already existing ones originating from
+   subordinate flavors.
 
 2. The respective `chrootinst`, `pkglist` and `config` files of all
    flavors are concatenated, in order. The resulting files thus
@@ -200,7 +200,8 @@ notion of what this is about.
 This step is optional: If enabled in the configuration, an additional
 ISO image is produced that can be burned to a CD or DVD, or (provided
 the `isohybrid` utility was available during creation) even be booted
-straight from a USB pen drive.
+straight from a USB pen drive. The contents of the merged `isolinux`
+flavor folders is included during image creation.
 
 ### What else?
 

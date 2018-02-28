@@ -46,7 +46,6 @@ OPENCHROOTSH=no
 # Sensible defaults for live ISO image generation:
 ISOCREATE=yes
 ISOVOLID="IRRVUAN_LIVE"
-ISOMENULABEL="Irrvuan Live"
 ISOGENCMD=
 ISOLINUXBIN=
 ISOLINUXMOD=
