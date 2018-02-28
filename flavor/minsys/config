@@ -1,21 +1,8 @@
 # config for flavor "minsys"
 
-IMAGE_PRE="Irrvuan-$FLAVOR"
-IMAGE_VER="2.0.0~beta1"
-IMAGE_SIZE=4096
-
-BOOTP_SIZE=127
-BOOTP_LABEL=IBOOT
-BOOTP_FS=ext4
-
-ROOTP_SIZE=3968
-ROOTP_LABEL=IROOT
-ROOTP_FS=ext4
-
-ARCH=amd64
-KERNEL=linux-image-amd64
 BASEPKG=$BASEPKG,\
 firmware-linux-nonfree,\
+acpi-support,\
 cron,\
 dbus,\
 rsyslog,\
@@ -27,17 +14,8 @@ openssh-server,\
 openssh-client
 
 COMPONENTS=main,contrib,non-free
-VARIANT=
-SUITE=ascii
-MIRURL=http://pkgmaster.devuan.org/merged
 DEBSTR_XTRA=--merged-usr
 
-ROOTPW=toor
-USERNM=user
-USERPW=user
-HOSTNAME=$FLAVOR
-DOMAIN=
 APTGETOPT=--no-install-recommends
-OPENCHROOTSH=no
 
 # EOF

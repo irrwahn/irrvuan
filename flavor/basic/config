@@ -28,7 +28,7 @@ keyboard-configuration,\
 busybox-static,\
 live-boot
 
-COMPONENTS=main,contrib
+COMPONENTS=main
 VARIANT=            # <empty> or one of minbase | buildd | fakechroot
 SUITE=ascii
 MIRURL=http://pkgmaster.devuan.org/merged

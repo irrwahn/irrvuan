@@ -1,15 +1,5 @@
-# config for flavor 'freebase'
+# config for flavor 'obasic'
 
-BASEPKG=grub-pc,\
-openrc,\
-firmware-linux-free,\
-console-setup,\
-console-setup-linux,\
-locales,\
-keyboard-configuration,\
-busybox-static,\
-live-boot
-
-COMPONENTS=main
+BASEPKG=openrc,$BASEPKG
 
 # EOF
