@@ -210,6 +210,7 @@ the 'raw' disk images produced by `build-image.sh` into one of several
 formats commonly accepted by various virtual machines, like e.g.
 `qcow` or `vdi`. It should be pretty self-explanatory.
 
+The `qrun.sh` script is a trivial convenience wrapper for qemu-system.
 
 ## Release History
 
