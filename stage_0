@@ -69,6 +69,12 @@ function Stage_0() {
         [ -z "$ISOLINUXMOD" ] \
             && ISOLINUXMOD=$(find /usr -path '*syslinux*bios' | head -n1)
     fi
+    # Sanitize hostname:
+    HOSTNAME=$( echo "$HOSTNAME" | sed -E \
+                -e 's/_/-/g' \
+                -e 's/[^-0-9a-zA-Z]//g' \
+                -e 's/-+/-/g' -e 's/^-//' -e 's/-$//' \
+                -e 's/^(\(.\{63\}\)).*/\1/g' )
 
     # Check prerequisites:
     log "Check prerequisites"
