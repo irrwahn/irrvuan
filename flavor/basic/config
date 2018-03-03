@@ -31,7 +31,7 @@ live-boot
 COMPONENTS=main
 VARIANT=            # <empty> or one of minbase | buildd | fakechroot
 SUITE=ascii
-MIRURL=http://pkgmaster.devuan.org/merged
+MIRURL=http://deb.devuan.org/merged  # http://pkgmaster.devuan.org/merged
 DEBSTR_XTRA=        # extra arguments to pass to debootstrap
 
 # Sensible defaults for system configuration:
