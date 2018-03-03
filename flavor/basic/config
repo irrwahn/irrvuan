@@ -35,7 +35,7 @@ MIRURL=http://pkgmaster.devuan.org/merged
 DEBSTR_XTRA=        # extra arguments to pass to debootstrap
 
 # Sensible defaults for system configuration:
-ROOTPW=toor
+ROOTPW=toor         # '!' for single-user login with empty password
 USERNM=user
 USERPW=user
 HOSTNAME=$FLAVOR

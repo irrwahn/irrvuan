@@ -21,8 +21,14 @@ echo "Enable shadow passwords, create user account, set passwords"
 /sbin/shadowconfig on
 /usr/sbin/useradd -u 1000 -c "$_OVL_USERNM_" -m -s /bin/bash $_OVL_USERNM_
 echo "$_OVL_USERNM_:$_OVL_USERPW_" | /usr/sbin/chpasswd
-echo "root:$_OVL_ROOTPW_" | /usr/sbin/chpasswd
+# Let user actually own all files in their home dir:
 chown -R "$_OVL_USERNM_:$_OVL_USERNM_" "/home/$_OVL_USERNM_"
+if [ "!" == "$_OVL_ROOTPW_" ] ; then
+    # Allow single-user emergency login with empty root password:
+    sed -i 's_:/sbin/sulogin$_:/sbin/sulogin -e_g' /etc/inittab
+elif [ -n "$_OVL_ROOTPW_" ] ; then
+    echo "root:$_OVL_ROOTPW_" | /usr/sbin/chpasswd
+fi
 
 echo "Perform additional package actions"
 export DEBIAN_FRONTEND=noninteractive

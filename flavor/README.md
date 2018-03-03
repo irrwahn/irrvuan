@@ -136,7 +136,9 @@ with the host system can reasonably be used here.
 ### 3. Parameters used for target system configuration
 
 * ROOTPW
-> password to set for the root account
+> password to set for the root account; leave empty to disable root
+> login; a special value of '!' enables single-user-mode emergency
+> login with empty root password
 
 * USERNM
 > name to use for the unprivileged user account
