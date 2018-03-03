@@ -1,0 +1,21 @@
+# config for flavor "minsys"
+
+BASEPKG=$BASEPKG,\
+firmware-linux-nonfree,\
+acpi-support,\
+cron,\
+dbus,\
+rsyslog,\
+netbase,\
+net-tools,\
+ntp,\
+telnet,\
+openssh-server,\
+openssh-client
+
+COMPONENTS=main,contrib,non-free
+DEBSTR_XTRA=--merged-usr
+
+APTGETOPT=--no-install-recommends
+
+# EOF

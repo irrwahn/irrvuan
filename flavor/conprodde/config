@@ -1,0 +1,7 @@
+# config for flavor "conprod"
+
+BASEPKG=$BASEPKG,\
+task-console-productivity,\
+aptitude
+
+# EOF
