@@ -74,15 +74,18 @@ function Stage_1() {
     sudo mkdir -p "$MOUNTP/boot"
     sudo mount -v "$BOOTP" "$MOUNTP/boot" 2>&1 | tee -a "$LOGFILE"
     check $? "mount"
-    UMOUNT="$MOUNTP/boot $UMOUNT"
+    UMOUNT="$MOUNTP/boot:$UMOUNT"
 }
 
 function Stage_1_cleanup() {
     log "--- ${FUNCNAME[0]} ---"
+    local oifs=$IFS
+    IFS=':'
     local u
     for u in $UMOUNT ; do
-        sudo umount -lfv $u 2>&1 | tee -a "$LOGFILE"
+        sudo umount -lfv "$u" 2>&1 | tee -a "$LOGFILE"
     done
+    IFS=$oifs
     sync
     log "Remove loop device: $LOOPD"
     sudo losetup -v -d $LOOPD  | tee -a "$LOGFILE"
