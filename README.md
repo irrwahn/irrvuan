@@ -124,6 +124,11 @@ Each flavor subdirectory may contain the following elements:
 > list of additional packages to be installed or purged via
 > `apt-get`, or to be configured by `dpgk-reconfigure`.
 
+* `isolinux`
+> configuration files used during live image generation
+
+
+
 In theory all of the components mentioned above are optional.
 However, it is advisable to have all of them present at least in
 the basic flavor definitions you intend to use. In higher level
@@ -195,13 +200,15 @@ You are encouraged to have a closer look at the included example
 flavors, particularly the one named `basic`, to get a more detailed
 notion of what this is about.
 
-#### Stage 4: Create an bootable ISO image
+#### Stage 4: Create an bootable live image
 
 This step is optional: If enabled in the configuration, an additional
 ISO image is produced that can be burned to a CD or DVD, or (provided
 the `isohybrid` utility was available during creation) even be booted
 straight from a USB pen drive. The contents of the merged `isolinux`
-flavor folders is included during image creation.
+flavor folders is included during image creation. Optionally an
+additional USB live image with support for file backed persistence
+can be generated.
 
 ### What else?
 

@@ -62,6 +62,7 @@ function Stage_0() {
     [ -z "$IMGNAME" ] && IMGNAME="$IMAGE_PRE-$IMAGE_VER-$ARCH-$TIMETAG".img
     OPENCHROOTSH=$(istrue "$OPENCHROOTSH")
     ISOCREATE=$(istrue "$ISOCREATE")
+    USBCREATE=$(istrue "$USBCREATE")
     if [ $ISOCREATE -ne 0 ] ; then
         [ -z "$ISOVOLID" ] && ISOVOLID="IRRVUAN_LIVE"
         [ -z "$ISOLINUXBIN" ] \
@@ -104,6 +105,9 @@ function Stage_0() {
         fi
         [ -r "$ISOLINUXBIN" ] || check $? "isolinux.bin not found"
         [ -d "$ISOLINUXMOD" ] || check $? "syslinux modules not found"
+        if [ $USBCREATE -ne 0 ] ; then
+            o=$(command -pv syslinux) || check $? "syslinux command not found!"
+        fi
     fi
 
     # Dump build config:
@@ -140,12 +144,15 @@ function Stage_0() {
     log "APTGETOPT=$APTGETOPT"
     log "OPENCHROOTSH=$OPENCHROOTSH"
     log "IMGFILE=$IMGFILE"
-    log "----- Live ISO config -----"
+    log "----- Live config -----"
     log "ISOCREATE=$ISOCREATE"
     log "ISOVOLID=$ISOVOLID"
     log "ISOGENCMD=$ISOGENCMD"
     log "ISOLINUXBIN=$ISOLINUXBIN"
     log "ISOLINUXMOD=$ISOLINUXMOD"
+    log "USBCREATE=$USBCREATE"
+    log "USBSIZE=$USBSIZE"
+    log "USBLABEL=$USBLABEL"
 
     # When running interactively allow user to opt out now:
     if [ -t 0 ] ; then

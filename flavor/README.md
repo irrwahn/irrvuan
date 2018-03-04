@@ -49,8 +49,9 @@ elements:
                 c you-know-the-drill  # configure 'you-know-the-drill'
 
 * `isolinux` -- flat directory
-> Either empty, or containing isolinux configuration files, used
-> only when creating ISO an image.
+> Either empty, or containing `isolinux.cfg` and / or `syslinux.cfg`
+> configuration files, which are used when creating ISO or USB live
+> images.
 
 
 ## Settings defined in `config`
@@ -162,11 +163,12 @@ with the host system can reasonably be used here.
 > partitions
 
 
-### 4. Parameters for live ISO image generation
+### 4. Parameters for live image generation
 
 * ISOCREATE
 > boolean; enable build step to produce a bootable live ISO image
-> from target system
+> from target system; for this to work, the live-boot package must
+> be installed in the target system
 
 * ISOVOLID
 > volume ID for live ISO image
@@ -184,6 +186,18 @@ with the host system can reasonably be used here.
 > full path of directory containing the `syslinux` modules; if
 > omitted, the script will try to locate it automatically in the
 > `/usr` hierarchy
+
+* USBCREATE
+> boolean; in addition to the ISO image create an FAT32 formatted
+> USB image with support for file backed persistent storage
+
+* USBSIZE
+> size of USB image in MiB (megabytes base 2); the size of the
+> persistence file will be ~100MB less than this image size and
+> at most 4096MB
+
+* USBLABEL
+> volume label for the FAT32 file system
 
 
 ## Overlay variable substitution

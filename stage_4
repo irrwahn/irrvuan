@@ -11,7 +11,7 @@ function Stage_4() {
         return
     fi
 
-    log "--- ${FUNCNAME[0]} build ISO image ---"
+    log "--- ${FUNCNAME[0]} build live image ---"
     CLEANUP="Stage_4_cleanup $CLEANUP"
 
     sudo umount -lf "$MOUNTP/sys" "$MOUNTP/proc" 2>/dev/null
@@ -78,6 +78,40 @@ function Stage_4() {
         isohybrid -v "$ISOFILE" 2>&1 | tee -a "$LOGFILE"
     else
         log "WARNING: 'isohybrid' not found, image will not be USB bootable!"
+    fi
+
+    if [ $USBCREATE -ne 0 ] ; then
+        log "Create USB image"
+        local USBFILE="${IMGFILE%.*}.usb"
+        truncate -s "$USBSIZE"M "$USBFILE"
+        check $? "truncate"
+        mkfs.vfat -F 32 -n "$USBLABEL" -v "$USBFILE" 2>&1 | tee -a "$LOGFILE"
+        check $? "mkfsys failed"
+        USBMOUNT="$MOUNTP/mnt"
+        sudo mount -oloop "$USBFILE" "$USBMOUNT"
+        check $? "mount"
+        sudo cp -vR --preserve=timestamps "$ISODIR/." "$USBMOUNT" \
+            2>&1 | tee -a "$LOGFILE"
+        sudo mv "$USBMOUNT/isolinux" "$USBMOUNT/syslinux" \
+            2>&1 | tee -a "$LOGFILE"
+
+        local psize=$(df --output=avail "$USBMOUNT" | tail -n1)
+        psize=$(($psize / 1024 - 100))
+        [ $psize -gt 4096 ] && psize=4096
+        log "Create USB persistence file of $psize MB"
+        sudo truncate -s "$psize"M "$USBMOUNT/persistence" \
+            && sudo mkfs.ext4 -L "persistence" -F -v "$USBMOUNT/persistence" \
+                2>&1 | tee -a "$LOGFILE" \
+            && sudo mkdir "$USBMOUNT/pmnt" \
+            && sudo mount -oloop "$USBMOUNT/persistence" "$USBMOUNT/pmnt" \
+            && log "Create persistence.conf" \
+            && echo "/ union" | sudo tee "$USBMOUNT/pmnt/persistence.conf" \
+            && sudo umount "$USBMOUNT/pmnt" \
+            && sudo rmdir "$USBMOUNT/pmnt"
+
+        log "Install syslinux boot loader"
+        sudo umount -lfv "$USBMOUNT" 2>&1 | tee -a "$LOGFILE"
+        syslinux -d /syslinux -i "$USBFILE" 2>&1 | tee -a "$LOGFILE"
     fi
 }
 

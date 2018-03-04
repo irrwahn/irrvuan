@@ -43,11 +43,14 @@ DOMAIN=
 APTGETOPT="--no-install-recommends"
 OPENCHROOTSH=no
 
-# Sensible defaults for live ISO image generation:
+# Sensible defaults for live image generation:
 ISOCREATE=yes
 ISOVOLID="IRRVUAN_LIVE"
 ISOGENCMD=
 ISOLINUXBIN=
 ISOLINUXMOD=
+USBCREATE=yes
+USBSIZE=2048
+USBLABEL=IRRVUAN
 
 # EOF
