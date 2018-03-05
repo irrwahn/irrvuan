@@ -49,7 +49,7 @@ function Stage_4() {
         $_LIVE_KERNEL_ \
         $_LIVE_INITRD_ \
         $_LIVE_SQFS_'
-    find "$TMPDIR/boot/" -type f | \
+    find "$TMPDIR/boot/syslinux" -type f | \
         while read f; do var_subst "$f" "$_live_vars" ; done
     cp -vR --preserve=mode,timestamps "$SYSLINUXMOD/." "$LIVEDIR/boot/syslinux"
         2>&1 | tee -a "$LOGFILE"
