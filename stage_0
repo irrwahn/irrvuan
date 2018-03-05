@@ -50,7 +50,7 @@ function Stage_0() {
             [ -r "$FLAVDIR/$f/$d" ] && cat "$FLAVDIR/$f/$d" >> "$TMPDIR/$d"
         done
         # Amalgamate folders:
-        for d in overlay xtrapkg isolinux ; do
+        for d in overlay xtrapkg boot ; do
             mkdir -p "$TMPDIR/$d"
             [ -d "$FLAVDIR/$f/$d" ] &&  cp -a "$FLAVDIR/$f/$d/." "$TMPDIR/$d/"
         done
@@ -63,12 +63,10 @@ function Stage_0() {
     OPENCHROOTSH=$(istrue "$OPENCHROOTSH")
     ISOCREATE=$(istrue "$ISOCREATE")
     USBCREATE=$(istrue "$USBCREATE")
-    if [ $ISOCREATE -ne 0 ] ; then
-        [ -z "$ISOVOLID" ] && ISOVOLID="IRRVUAN_LIVE"
-        [ -z "$ISOLINUXBIN" ] \
-            && ISOLINUXBIN=$(find /usr -name isolinux.bin | head -n1)
-        [ -z "$ISOLINUXMOD" ] \
-            && ISOLINUXMOD=$(find /usr -path '*syslinux*bios' | head -n1)
+    if [ $ISOCREATE -ne 0 ] || [ $USBCREATE -ne 0 ] ; then
+        LIVECREATE=1
+    else
+        LIVECREATE=0
     fi
     # Sanitize hostname:
     HOSTNAME=$( echo "$HOSTNAME" | sed -E \
@@ -89,22 +87,29 @@ function Stage_0() {
     done
     local v=$(losetup -V | grep -Eo '[0-9]+\.[0-9]+')
     check $( echo "$v < 2.21" | bc ) "losetup >= 2.21 is required!"
-    if [ $ISOCREATE -ne 0 ] ; then
+    if [ $LIVECREATE -ne 0 ] ; then
         o=$(command -pv mksquashfs) || check $? "mksquashfs command not found!"
-        if [ -n "$ISOGENCMD" ] ; then
-            o=$(command -pv "$ISOGENCMD") \
-                || check $? "$ISOGENCMD command not found!"
-        elif command -pv xorrisofs ; then
-            ISOGENCMD=xorrisofs
-        elif command -pv mkisofs ; then
-            ISOGENCMD=mkisofs
-        elif command -pv genisoimage ; then
-            ISOGENCMD=genisoimage
-        else
-            check 5 "no supported ISO builder found"
+        [ -z "$LIVEVOLID" ] && LIVEVOLID="IRRVUAN_LIVE"
+        [ -z "$SYSLINUXMOD" ] \
+            && SYSLINUXMOD=$(find /usr -path '*syslinux*bios' | head -n1)
+        [ -d "$SYSLINUXMOD" ] || check $? "syslinux modules not found"
+        if [ $ISOCREATE -ne 0 ] ; then
+            [ -z "$ISOLINUXBIN" ] \
+                && ISOLINUXBIN=$(find /usr -name isolinux.bin | head -n1)
+            [ -r "$ISOLINUXBIN" ] || check $? "isolinux.bin not found"
+            if [ -n "$ISOGENCMD" ] ; then
+                o=$(command -pv "$ISOGENCMD") \
+                    || check $? "$ISOGENCMD command not found!"
+            elif command -pv xorrisofs ; then
+                ISOGENCMD=xorrisofs
+            elif command -pv mkisofs ; then
+                ISOGENCMD=mkisofs
+            elif command -pv genisoimage ; then
+                ISOGENCMD=genisoimage
+            else
+                check 5 "no supported ISO builder found"
+            fi
         fi
-        [ -r "$ISOLINUXBIN" ] || check $? "isolinux.bin not found"
-        [ -d "$ISOLINUXMOD" ] || check $? "syslinux modules not found"
         if [ $USBCREATE -ne 0 ] ; then
             o=$(command -pv syslinux) || check $? "syslinux command not found!"
         fi
@@ -145,14 +150,14 @@ function Stage_0() {
     log "OPENCHROOTSH=$OPENCHROOTSH"
     log "IMGFILE=$IMGFILE"
     log "----- Live config -----"
+    log "LIVECREATE=$LIVECREATE"
+    log "LIVEVOLID=$LIVEVOLID"
+    log "SYSLINUXMOD=$SYSLINUXMOD"
     log "ISOCREATE=$ISOCREATE"
-    log "ISOVOLID=$ISOVOLID"
-    log "ISOGENCMD=$ISOGENCMD"
     log "ISOLINUXBIN=$ISOLINUXBIN"
-    log "ISOLINUXMOD=$ISOLINUXMOD"
+    log "ISOGENCMD=$ISOGENCMD"
     log "USBCREATE=$USBCREATE"
     log "USBSIZE=$USBSIZE"
-    log "USBLABEL=$USBLABEL"
 
     # When running interactively allow user to opt out now:
     if [ -t 0 ] ; then

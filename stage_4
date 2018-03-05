@@ -7,30 +7,30 @@
 #
 
 function Stage_4() {
-    if [ $ISOCREATE -eq 0 ] ; then
+    if [ $LIVECREATE -eq 0 ] ; then
         return
     fi
 
-    log "--- ${FUNCNAME[0]} build live image ---"
+    log "--- ${FUNCNAME[0]} build live image(s) ---"
     CLEANUP="Stage_4_cleanup $CLEANUP"
 
     sudo umount -lf "$MOUNTP/sys" "$MOUNTP/proc" 2>/dev/null
     sudo umount -lf "$MOUNTP/dev/pts" "$MOUNTP/dev" 2>/dev/null
 
+    local LIVEDIR="$TMPDIR/livesys/"
+    mkdir -p "$LIVEDIR/boot" | tee -a "$LOGFILE"
+    mkdir -p "$LIVEDIR/live" | tee -a "$LOGFILE"
+
     export \
-        _ISO_KERNEL_="/live/vmlinuz" \
-        _ISO_INITRD_="/live/initrd.img" \
-        _ISO_SQFS_="filesystem.squashfs"
-    local ISOFILE="${IMGFILE%.*}.iso"
-    local ISODIR="$TMPDIR/iso/"
-    mkdir -p "$ISODIR/isolinux" | tee -a "$LOGFILE"
-    mkdir -p "$ISODIR/live" | tee -a "$LOGFILE"
+        _LIVE_KERNEL_="/live/vmlinuz" \
+        _LIVE_INITRD_="/live/initrd.img" \
+        _LIVE_SQFS_="filesystem.squashfs"
 
     log "Create sqashfs"
-    touch "$ISODIR/live/$_ISO_SQFS_"
+    touch "$LIVEDIR/live/$_LIVE_SQFS_"
     sudo mksquashfs \
         "$MOUNTP" \
-        "$ISODIR/live/$_ISO_SQFS_" \
+        "$LIVEDIR/live/$_LIVE_SQFS_" \
         -noappend \
         -no-progress \
         -wildcards -e 'boot/*' \
@@ -39,60 +39,60 @@ function Stage_4() {
     log "Copy kernel and initrd"
     local kernel=$(ls $MOUNTP/boot/vmlinuz* | head -n1)
     local initrd=${kernel//vmlinuz/initrd.img}
-    cp -v --preserve=mode,timestamps "$kernel" "$ISODIR/$_ISO_KERNEL_" \
+    cp -v --preserve=mode,timestamps "$kernel" "$LIVEDIR/$_LIVE_KERNEL_" \
         2>&1 | tee -a "$LOGFILE"
-    cp -v --preserve=mode,timestamps "$initrd" "$ISODIR/$_ISO_INITRD_" \
-        2>&1 | tee -a "$LOGFILE"
-
-    log "Substitute isolinux variables and copy stuff"
-    local _iso_vars='\
-        $_ISO_KERNEL_ \
-        $_ISO_INITRD_ \
-        $_ISO_SQFS_'
-    find "$TMPDIR/isolinux/" -type f | \
-        while read f; do var_subst "$f" "$_iso_vars" ; done
-    cp -v --preserve=mode,timestamps "$ISOLINUXBIN" "$ISODIR/isolinux/"
-        2>&1 | tee -a "$LOGFILE"
-    cp -vR --preserve=mode,timestamps "$ISOLINUXMOD/." "$ISODIR/isolinux/"
-        2>&1 | tee -a "$LOGFILE"
-    cp -vR --preserve=mode,timestamps "$TMPDIR/isolinux/." "$ISODIR/isolinux/" \
+    cp -v --preserve=mode,timestamps "$initrd" "$LIVEDIR/$_LIVE_INITRD_" \
         2>&1 | tee -a "$LOGFILE"
 
-    log "Generate ISO image using $ISOGENCMD"
-    $ISOGENCMD \
-        -rational-rock \
-        -volid "$ISOVOLID" \
-        -joliet \
-        -b isolinux/isolinux.bin \
-        -c isolinux/boot.cat \
-        -no-emul-boot \
-        -boot-load-size 4 \
-        -boot-info-table \
-        -o "$ISOFILE" \
-        "$ISODIR" \
+    log "Substitute live variables and copy stuff"
+    local _live_vars='\
+        $_LIVE_KERNEL_ \
+        $_LIVE_INITRD_ \
+        $_LIVE_SQFS_'
+    find "$TMPDIR/boot/" -type f | \
+        while read f; do var_subst "$f" "$_live_vars" ; done
+    cp -vR --preserve=mode,timestamps "$SYSLINUXMOD/." "$LIVEDIR/boot/syslinux"
+        2>&1 | tee -a "$LOGFILE"
+    cp -vR --preserve=mode,timestamps "$TMPDIR/boot/." "$LIVEDIR/boot/" \
         2>&1 | tee -a "$LOGFILE"
 
-    # Make ISO image hybrid bootable, if possible
-    if command -pv isohybrid ; then
-        log "INFO: 'isohybrid' found, patching ISO image for USB boot."
-        isohybrid -v "$ISOFILE" 2>&1 | tee -a "$LOGFILE"
-    else
-        log "WARNING: 'isohybrid' not found, image will not be USB bootable!"
+    if [ $ISOCREATE -ne 0 ] ; then
+        log "Create ISO live image"
+        cp -v --preserve=mode,timestamps "$ISOLINUXBIN" "$LIVEDIR/boot/syslinux"
+            2>&1 | tee -a "$LOGFILE"
+        local ISOFILE="${IMGFILE%.*}.iso"
+        $ISOGENCMD \
+            -rational-rock \
+            -volid "$LIVEVOLID" \
+            -joliet \
+            -b boot/syslinux/isolinux.bin \
+            -c boot/boot.cat \
+            -no-emul-boot \
+            -boot-load-size 4 \
+            -boot-info-table \
+            -o "$ISOFILE" \
+            "$LIVEDIR" \
+            2>&1 | tee -a "$LOGFILE"
+        # Make ISO image hybrid bootable, if possible
+        if command -pv isohybrid ; then
+            log "INFO: 'isohybrid' found, patching ISO image for USB boot."
+            isohybrid -v "$ISOFILE" 2>&1 | tee -a "$LOGFILE"
+        else
+            log "WARNING: 'isohybrid' not found, image will not be USB bootable!"
+        fi
     fi
 
     if [ $USBCREATE -ne 0 ] ; then
-        log "Create USB image"
+        log "Create USB live image"
         local USBFILE="${IMGFILE%.*}.usb"
         truncate -s "$USBSIZE"M "$USBFILE"
         check $? "truncate"
-        mkfs.vfat -F 32 -n "$USBLABEL" -v "$USBFILE" 2>&1 | tee -a "$LOGFILE"
+        mkfs.vfat -F 32 -n "$LIVEVOLID" -v "$USBFILE" 2>&1 | tee -a "$LOGFILE"
         check $? "mkfsys failed"
         USBMOUNT="$MOUNTP/mnt"
         sudo mount -oloop "$USBFILE" "$USBMOUNT"
         check $? "mount"
-        sudo cp -vR --preserve=timestamps "$ISODIR/." "$USBMOUNT" \
-            2>&1 | tee -a "$LOGFILE"
-        sudo mv "$USBMOUNT/isolinux" "$USBMOUNT/syslinux" \
+        sudo cp -vR --preserve=timestamps "$LIVEDIR/." "$USBMOUNT" \
             2>&1 | tee -a "$LOGFILE"
 
         local psize=$(df --output=avail "$USBMOUNT" | tail -n1)
@@ -111,7 +111,7 @@ function Stage_4() {
 
         log "Install syslinux boot loader"
         sudo umount -lfv "$USBMOUNT" 2>&1 | tee -a "$LOGFILE"
-        syslinux -d /syslinux -i "$USBFILE" 2>&1 | tee -a "$LOGFILE"
+        syslinux -d /boot/syslinux/ -i "$USBFILE" 2>&1 | tee -a "$LOGFILE"
     fi
 }
 

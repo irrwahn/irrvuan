@@ -50,7 +50,7 @@ generated image files!
 A lot of operations performed by `build-image.sh` require
 superuser permissions. A poor choice of configuration settings,
 especially in `main.cfg`, can potentially cause severe damage to
-the host system! The author of this script takes no liability
+the build system! The author of this script takes no liability
 whatsoever for any damage caused by running it on your machine,
 you do so at your own risk. **You have been warned!**
 
@@ -124,8 +124,8 @@ Each flavor subdirectory may contain the following elements:
 > list of additional packages to be installed or purged via
 > `apt-get`, or to be configured by `dpgk-reconfigure`.
 
-* `isolinux`
-> configuration files used during live image generation
+* `boot`
+> boot loader configuration files used during live image generation
 
 
 
@@ -159,11 +159,11 @@ device associations.
 Progressing along the flavor link chain from bottom to top, the
 following operations take place:
 
-1. The `overlay`, `xtrapkg` and `isolinux` folders of all linked
-   flavors are amalgamated, i.e. they are copied on top of each
-   other, to the effect that files in higher level flavors will
-   potentially overwrite already existing ones originating from
-   subordinate flavors.
+1. The respective `overlay`, `xtrapkg` and `boot` folders of all
+   linked flavors are amalgamated, i.e. they are copied on top of
+   each other, to the effect that files in higher level flavors
+   will potentially overwrite already existing ones originating
+   from subordinate flavors.
 
 2. The respective `chrootinst`, `pkglist` and `config` files of all
    flavors are concatenated, in order. The resulting files thus
@@ -200,15 +200,13 @@ You are encouraged to have a closer look at the included example
 flavors, particularly the one named `basic`, to get a more detailed
 notion of what this is about.
 
-#### Stage 4: Create an bootable live image
+#### Stage 4: Create a bootable live image
 
-This step is optional: If enabled in the configuration, an additional
-ISO image is produced that can be burned to a CD or DVD, or (provided
-the `isohybrid` utility was available during creation) even be booted
-straight from a USB pen drive. The contents of the merged `isolinux`
-flavor folders is included during image creation. Optionally an
-additional USB live image with support for file backed persistence
-can be generated.
+This step is optional: If enabled in the configuration, additional
+ISO and / or USB images are produced that can be burned to a CD or
+DVD or booted straight from a USB pen drive. The contents of the
+merged `boot` flavor folders is included during image creation.
+USB live images have added support for file backed persistence.
 
 ### What else?
 

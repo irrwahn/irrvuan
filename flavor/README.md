@@ -48,20 +48,20 @@ elements:
                 i nice-package        # install 'nice-package'
                 c you-know-the-drill  # configure 'you-know-the-drill'
 
-* `isolinux` -- flat directory
-> Either empty, or containing `isolinux.cfg` and / or `syslinux.cfg`
-> configuration files, which are used when creating ISO or USB live
-> images.
+* `boot` -- directory
+> Either empty, or containing configuration and supplemental files
+> like `isolinux.cfg` or `syslinux.cfg` to be used when creating
+> ISO9660 or USB live images.
 
 
 ## Settings defined in `config`
 
 ### 1. Parameters affecting disk image generation
 
-* IMAGE_PRE
+* `IMAGE_PRE` -- string
 > initial portion of the disk image file name
 
-* IMAGE_VER
+* `IMAGE_VER` -- string
 > version tag to be used in image file name
 
 **Note:**
@@ -69,95 +69,96 @@ Alternatively you can set the internal `$IMGNAME` variable directly,
 in which case the `IMAGE_PRE` and `IMAGE_VER` settings are ignored
 and the script will not compose an image file name for you. You may
 reference the internal variables `$FLAVOR` (containing the flavor
-name) and `$START` (an ISO 8601 time stamp representing the start
+name) and `$START` (an ISO8601 time stamp representing the start
 date and time of the build process) in any of the image name
 settings mentioned above.
 
-* IMAGE_SIZE
+* `IMAGE_SIZE` -- integer
 > overall size of the disk image in MiB (megabytes base 2)
 
-* BOOTP_SIZE
+* `BOOTP_SIZE` -- integer
 > size of the boot partition in MiB (megabytes base 2)
 
-* BOOTP_LABEL
+* `BOOTP_LABEL` -- string
 > boot partition label
 
-* BOOTP_FS
+* `BOOTP_FS` -- string
 > file system to use for boot partition; one of: `ext2`, `ext3`,
 > `ext4`, `fat`, `msdos`, `vfat`.
 
-* ROOTP_SIZE
+* `ROOTP_SIZE` -- integer
 > size of the root partition in MiB (megabytes base 2)
 
-* ROOTP_LABEL
+* `ROOTP_LABEL` -- string
 > root partition label
 
-* ROOTP_FS
+* `ROOTP_FS` -- string
 > file system to use for boot partition; one of: `ext2`, `ext3`,
 > `ext4`, `fat`, `msdos`, `vfat`.
 
 
 ### 2. Parameters controlling `debootstrap` operation
 
-* ARCH
+* `ARCH` -- string
 > target system architecture, e.g. `amd64` or `i386`.
 
 **Note:** As the build script expects the second stage of
 `debootstrap` to run automatically and later executes a shell in a
 `chroot` environment, only architectures that are binary compatible
-with the host system can reasonably be used here.
+with the build system can reasonably be used here.
 
-* KERNEL
+* `KERNEL` -- string
 > kernel package to install
 
-* BASEPKG
+* `BASEPKG` -- string
 > comma separated list of packages to include during `debootstrap`
 > operation
 
-* COMPONENTS
+* `COMPONENTS` -- string
 > comma separated list of repository components to include, e.g.
 > `main,contrib`
 
-* VARIANT
+* `VARIANT` -- string
 > usually empty (debootstrap default), or one of `minbase`,
 > `buildd`, `fakechroot` (consult the `debootstrap` man page for
 > further information)
 
-* SUITE
+* `SUITE` -- string
 > codename of the OS suite to install, e.g. `jessie` or `ascii`
 
-* MIRURL
+* `MIRURL` -- string
 > URL of the repository mirror to use, see `debootstrap` man page
 > for details
 
-* DEBSTR_XTRA
+* `DEBSTR_XTRA` -- string
 > optional: additional arguments to pass to `debootstrap` verbatim
 
 
 ### 3. Parameters used for target system configuration
 
-* ROOTPW
+* `ROOTPW` -- string
 > password to set for the root account; leave empty to disable root
 > login; a special value of '!' enables single-user-mode emergency
 > login with empty root password
 
-* USERNM
+* `USERNM` -- string
 > name to use for the unprivileged user account
 
-* USERPW
+* `USERPW` -- string
 > password to set for the unprivileged user account
 
-* HOSTNAME
-> target system name (goes into `/etc/hostname`)
+* `HOSTNAME` -- string
+> target system name (goes into `/etc/hostname`); is sanitized to
+> comply with the RFC rules for host names
 
-* DOMAIN
+* `DOMAIN` -- string
 > optional: domain the target system will be part of
 
-* APTGETOPT
+* `APTGETOPT` -- string
 > optional: additional command line parameters to pass to `apt-get`
 > during `pkglist` processing
 
-* OPENCHROOTSH
+* `OPENCHROOTSH` -- boolean
 > boolean; start an interactive `bash` session in chroot after all
 > automated tasks ran to completion, right before unmounting the
 > partitions
@@ -165,39 +166,40 @@ with the host system can reasonably be used here.
 
 ### 4. Parameters for live image generation
 
-* ISOCREATE
-> boolean; enable build step to produce a bootable live ISO image
-> from target system; for this to work, the live-boot package must
-> be installed in the target system
+**Note:** For any of the following to have any effect the live-boot
+package must be installed on the target system and the syslinux
+package must be installed on the build system.
 
-* ISOVOLID
-> volume ID for live ISO image
 
-* ISOGENCMD
-> utility to generate ISO image, e.g. `xorrisofs`, `mkisofs` or
-> `genisoimage`; if omitted, the script will try to pick a suitable
-> command
+* `LIVEVOLID` -- string
+> volume ID for live image(s)
 
-* ISOLINUXBIN
-> full path of `isolinux.bin` file; if omitted, the script will try
-> to locate it automatically in the `/usr` hierarchy
-
-* ISOLINUXMOD
+* `SYSLINUXMOD` -- string
 > full path of directory containing the `syslinux` modules; if
 > omitted, the script will try to locate it automatically in the
-> `/usr` hierarchy
+> `/usr` hierarchy of the build system
 
-* USBCREATE
-> boolean; in addition to the ISO image create an FAT32 formatted
-> USB image with support for file backed persistent storage
+* `ISOCREATE` -- boolean
+> create a bootable ISO9660 image from generated target system
 
-* USBSIZE
+* `ISOLINUXBIN` -- string
+> full path of `isolinux.bin` file; if omitted, the script will try
+> to locate it automatically in the `/usr` hierarchy of the build
+> system
+
+* `ISOGENCMD` -- string
+> utility to generate ISO9660 image, e.g. `xorrisofs`, `mkisofs` or
+> `genisoimage`; if omitted, the script will try to locate a suitable
+> command
+
+* `USBCREATE` -- boolean
+> create a FAT32 formatted USB image with support for file backed
+> persistence
+
+* `USBSIZE` -- integer
 > size of USB image in MiB (megabytes base 2); the size of the
-> persistence file will be ~100MB less than this image size and
-> at most 4096MB
-
-* USBLABEL
-> volume label for the FAT32 file system
+> persistence file will be ~100MB less than the available space on
+> this image size and at most 4096MB
 
 
 ## Overlay variable substitution
@@ -235,14 +237,16 @@ as all the files originating from the merged `overlay` directory:
 > set to `$ROOTPW`, see above
 
 * `$_OVL_LOOPD_`
-> set to the loop device node on the host system associated with the
-> target image (crucial for MBR boot loader installation)
+> set to the loop device node on the build system associated with
+> the target image (crucial for MBR boot loader installation)
 
 * `$_OVL_BOOTP_`
-> set to the host device node associated with the target boot partition
+> set to the build systems's device node associated with the target
+> boot partition
 
 * `$_OVL_ROOTP_`
-> set to the host device node associated with the target root partition
+> set to the build system's device node associated with the target
+> root partition
 
 * `$_OVL_APTGETOPT_`
 > set to `$APTGETOPT`, see above
@@ -251,15 +255,15 @@ as all the files originating from the merged `overlay` directory:
 ## Isolinux variable substitution
 
 The following variables are substituted in all files in the merged
-isolinux folder:
+boot folder:
 
-* `$_ISO_KERNEL_`
-> set to the path of the kernel image (relative to ISO root)
+* `$_LIVE_KERNEL_`
+> set to the path of the kernel image (relative to image root)
 
-* `$_ISO_INITRD_`
-> set to the path of the initrd image (relative to ISO root)
+* `$_LIVE_INITRD_`
+> set to the path of the initrd image (relative to image root)
 
-* `$_ISO_SQFS_`
+* `$_LIVE_SQFS_`
 > set to the path of the squashfs image (relative to kernel)
 
 
