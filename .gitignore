@@ -1,0 +1,5 @@
+*.my
+/build
+/log
+/mnt
+/tmp
